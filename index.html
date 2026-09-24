@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宜家PPS交接学习系统 v5</title>
+    <title>宜家PPS交接学习系统 v6</title>
     <style>
         :root {
             --primary-color: #0058a3;
@@ -78,16 +78,53 @@
         .ref-box p { font-size: 12px; margin: 5px 0; }
         .ref-box ul { margin: 5px 0 5px 15px; }
         .ref-box li { padding: 2px 0; border: none; cursor: default; }
-        .ref-box .ou-group { background: #e8eef8; font-weight: bold; }
+        /* 部门对照专用样式 */
+        .dept-table-container { background: #f8faff; border: 1px solid #d0e0f0; border-radius: 8px; padding: 20px; margin: 15px 0; }
+        .dept-table-container h3 { font-size: 15px; color: var(--mytime-color); margin-bottom: 5px; }
+        .dept-table-container .dept-subtitle { font-size: 12px; color: #888; margin-bottom: 15px; }
+        .dept-table-container .dept-search-box { margin-bottom: 15px; }
+        .dept-table-container .dept-search-box input { width: 100%; padding: 10px 15px; border: 2px solid var(--border-color); border-radius: 6px; font-size: 14px; }
+        .dept-table-container .dept-search-box input:focus { outline: none; border-color: var(--mytime-color); }
+        .dept-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .dept-table th { background: var(--mytime-color); color: white; padding: 10px 12px; text-align: left; font-weight: bold; position: sticky; top: 0; }
+        .dept-table th:first-child { border-top-left-radius: 6px; }
+        .dept-table th:last-child { border-top-right-radius: 6px; }
+        .dept-table td { border: 1px solid #dde7f5; padding: 8px 12px; vertical-align: top; }
+        .dept-table tr:hover td { background: #eef5ff; }
+        .dept-table .ou-group-row td { background: #e8eef8; font-weight: bold; font-size: 14px; color: var(--mytime-color); padding: 10px 12px; border-left: 4px solid var(--mytime-color); }
+        .dept-table .ou-group-row td .ou-code { font-size: 12px; color: #999; font-weight: normal; margin-left: 8px; }
+        .dept-table .col-ou { white-space: nowrap; color: #999; font-size: 12px; }
+        .dept-table .col-daily { font-weight: 600; color: #333; }
+        .dept-table .col-mt { color: var(--mytime-color); font-weight: 500; }
+        .dept-table .col-mt-dept { color: #555; }
+        .dept-table .warn-cell { background: #fff3e0 !important; }
+        .dept-table .warn-cell .col-daily,
+        .dept-table .warn-cell .col-mt { color: #e65100; }
+        .dept-warn-box { background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 6px; padding: 12px 15px; margin: 15px 0; }
+        .dept-warn-box h4 { font-size: 13px; color: #e65100; margin-bottom: 8px; }
+        .dept-warn-box p { font-size: 12px; color: #795548; margin: 4px 0; line-height: 1.7; }
+        .dept-checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px dashed #e0e0e0; }
+        .dept-checklist-item:last-child { border-bottom: none; }
+        .dept-checklist-item input[type="checkbox"] { margin-top: 3px; }
+        .dept-checklist-item label { font-weight: normal; font-size: 13px; cursor: pointer; flex: 1; }
+        .dept-checklist-item .note-inline { font-size: 11px; color: #999; }
+        .dept-progress { font-size: 12px; color: #666; margin-bottom: 10px; }
         footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 12px; color: #aaa; text-align: center; }
-        @media (max-width: 600px) { .container { padding: 15px; } .form-grid { grid-template-columns: 1fr; } .form-group.full { grid-column: span 1; } .tabs { flex-direction: column; } }
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+            .tabs { flex-direction: column; }
+            .dept-table { font-size: 11px; }
+            .dept-table th, .dept-table td { padding: 5px 6px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🏠 宜家PPS交接学习系统 v5</h1>
+        <h1>🏠 宜家PPS交接学习系统 v6</h1>
         <div class="tabs">
             <button class="tab-btn active" data-tab="checklist">📋 交接学习打卡</button>
             <button class="tab-btn" data-tab="role">👤 岗位职责与能力</button>
@@ -146,8 +183,93 @@
 </div>
 
 <script>
-var CHECKLIST_KEY = 'pps_checklist_v5';
-var JOURNAL_KEY = 'pps_journal_v5';
+var CHECKLIST_KEY = 'pps_checklist_v6';
+var JOURNAL_KEY = 'pps_journal_v6';
+
+/* ================= 部门对照表数据 ================= */
+var deptMappingData = [
+    { ouName: "Com-In", ouCode: "1016", ouLabel: "沟通陈列部", depts: [
+        { daily: "Com-In",                  mtDiv: "Management",                          mtDept: "Management" },
+        { daily: "Graphic Communication",   mtDiv: "Communication& Interior Design",     mtDept: "Graphic Design" },
+        { daily: "Interior Design",         mtDiv: "Communication& Interior Design",     mtDept: "Interior Design" },
+        { daily: "Visual Merchandise/Act.", mtDiv: "Communication& Interior Design",     mtDept: "Visual Merchandising" }
+    ]},
+    { ouName: "Cust. Relations", ouCode: "1023", ouLabel: "客服关系部", depts: [
+        { daily: "Checkout Services",  mtDiv: "Customer Services", mtDept: "Cashline" },
+        { daily: "Customer Relations", mtDiv: "Management",        mtDept: "Management" },
+        { daily: "Easy Buying",        mtDiv: "Customer Services", mtDept: "After Sales Administration" },
+        { daily: "Shopping Experience",mtDiv: "Customer Services", mtDept: "Småland" }
+    ]},
+    { ouName: "Ful. Unit Ops.", ouCode: "1224", ouLabel: "物流运营部", depts: [
+        { daily: "Fulfilment Integration",   mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Integration" },
+        { daily: "Fulfilment Operations",    mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations" },
+        { daily: "Fulfilment Unit Operations",mtDiv: "Management",         mtDept: "Management" },
+        { daily: "Full Truckload& SSFA",     mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Picking" },
+        { daily: "Goods Receiving",          mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Receiving" },
+        { daily: "Goods Replenishment",      mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Replenishment" },
+        { daily: "Service Execution",        mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Service Execution" }
+    ]},
+    { ouName: "IKEA Food", ouCode: "1050", ouLabel: "餐饮部", depts: [
+        { daily: "Commercial Restaurant", mtDiv: "IKEA Food", mtDept: "IKEA Food Restaurant" },
+        { daily: "Commercial SFM& Bistro",mtDiv: "IKEA Food", mtDept: "Bistro& Sweden Shop" },
+        { daily: "IKEA Food",             mtDiv: "IKEA Food", mtDept: "IKEA Food" },
+        { daily: "Kitchen Production",    mtDiv: "IKEA Food", mtDept: "Staff Restaurant" }
+    ]},
+    { ouName: "Local Marketing", ouCode: "1069", ouLabel: "本地市场部", depts: [
+        { daily: "IKEA Family",     mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与下方Local Marketing在My Time中显示相同" },
+        { daily: "Local Marketing", mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与上方IKEA Family在My Time中显示相同" }
+    ]},
+    { ouName: "Operations", ouCode: "1077", ouLabel: "运营部", depts: [
+        { daily: "Business Navigation",     mtDiv: "Business Navigation", mtDept: "Business Administration" },
+        { daily: "Recovery",                mtDiv: "Business Navigation", mtDept: "Product Quality& Recovery" },
+        { daily: "Safety& Security",        mtDiv: "Business Navigation", mtDept: "Safety& Security 2", warn: true, warnNote: "My Time中Dept显示为 Safety& Security 2（注意数字2）" },
+        { daily: "Service Operations Team", mtDiv: "SO 3 Digital Hub",    mtDept: "Service Operation 3" }
+    ]},
+    { ouName: "People&Culture", ouCode: "1193", ouLabel: "人事文化部", depts: [
+        { daily: "People& Culture", mtDiv: "People& Culture", mtDept: "People& Culture" }
+    ]},
+    { ouName: "Real Estate", ouCode: "1191", ouLabel: "物业部", depts: [
+        { daily: "Facility", mtDiv: "Facility Management", mtDept: "Facility Management" }
+    ]},
+    { ouName: "Sales", ouCode: "1094", ouLabel: "销售部（13个子部门）", depts: [
+        { daily: "Children's& IKEA Family",       mtDiv: "Sales",     mtDept: "Children's IKEA" },
+        { daily: "Commercial Activity",           mtDiv: "Sales",     mtDept: "Activities" },
+        { daily: "Cooking& Eating",               mtDiv: "Sales",     mtDept: "Cooking& Eating" },
+        { daily: "Dining",                        mtDiv: "Sales",     mtDept: "Kitchen& Dining", warn: true, warnNote: "与下方Kitchen在My Time中显示相同" },
+        { daily: "Home Decoration",               mtDiv: "Sales",     mtDept: "Decoration& Outdoor" },
+        { daily: "Home Furnishing Consultant",    mtDiv: "Sales",     mtDept: "Home Furnishing Consultants" },
+        { daily: "Home Organization",             mtDiv: "Sales",     mtDept: "Home Organisation& Second Storage" },
+        { daily: "Kitchen",                       mtDiv: "Sales",     mtDept: "Kitchen& Dining", warn: true, warnNote: "与上方Dining在My Time中显示相同" },
+        { daily: "Lighting",                      mtDiv: "Sales",     mtDept: "Lighting" },
+        { daily: "Living Storage& Upholstery",    mtDiv: "Sales",     mtDept: "Living Room" },
+        { daily: "Sales",                         mtDiv: "Management",mtDept: "Management", warn: true, warnNote: "Sales下的管理岗，与多个OU的Management显示相同" },
+        { daily: "Self Serve",                    mtDiv: "Sales",     mtDept: "Self Serve" },
+        { daily: "Sleeping& Storing",             mtDiv: "Sales",     mtDept: "Bedroom" },
+        { daily: "Textiles& Bathroom",            mtDiv: "Sales",     mtDept: "Textiles& Rugs" },
+        { daily: "Workspace",                     mtDiv: "Sales",     mtDept: "Work IKEA" }
+    ]},
+    { ouName: "Store Mgt.", ouCode: "1101", ouLabel: "店管理层", depts: [
+        { daily: "Store", mtDiv: "Management", mtDept: "Management", warn: true, warnNote: "与多个OU的Management\\|Management显示相同，务必通过OU编号区分" }
+    ]}
+];
+
+/* 部门对照表打卡项（用于进度统计） */
+var deptChecklistItems = [
+    { id: "dm_commin",    text: "已熟记 Com-In（沟通陈列部）4个部门对照", ou: "Com-In" },
+    { id: "dm_cr",        text: "已熟记 Cust. Relations（客服关系部）4个部门对照", ou: "Cust. Relations" },
+    { id: "dm_ful",       text: "已熟记 Ful. Unit Ops.（物流运营部）7个部门对照", ou: "Ful. Unit Ops." },
+    { id: "dm_food",      text: "已熟记 IKEA Food（餐饮部）4个部门对照", ou: "IKEA Food" },
+    { id: "dm_lm",        text: "已熟记 Local Marketing（本地市场部）2个部门对照 — ⚠️两个部门My Time显示相同", ou: "Local Marketing" },
+    { id: "dm_ops",       text: "已熟记 Operations（运营部）4个部门对照 — ⚠️Safety& Security 2 注意数字", ou: "Operations" },
+    { id: "dm_pc",        text: "已熟记 People&Culture（人事文化部）1个部门对照", ou: "People&Culture" },
+    { id: "dm_re",        text: "已熟记 Real Estate（物业部）1个部门对照", ou: "Real Estate" },
+    { id: "dm_sales",     text: "已熟记 Sales（销售部）13个部门对照 — ⚠️Dining与Kitchen显示相同", ou: "Sales" },
+    { id: "dm_store",     text: "已熟记 Store Mgt.（店管理层）1个部门对照 — ⚠️多个OU共享Management名称", ou: "Store Mgt." },
+    { id: "dm_confuse1",  text: "已掌握易混淆点：多个OU都有 Management\\|Management，必须通过OU编号区分", ou: "" },
+    { id: "dm_confuse2",  text: "已掌握易混淆点：Local Marketing下两部门显示相同（Marketing\\|Marketing）", ou: "" },
+    { id: "dm_confuse3",  text: "已掌握易混淆点：Sales下Dining和Kitchen都显示为 Sales\\|Kitchen& Dining", ou: "" },
+    { id: "dm_confuse4",  text: "已掌握操作技巧：排班/考勤/Sign off时先用OU编号定位OU，再找Div_Dep", ou: "" }
+];
 
 var checklistData = [
     { title: "一、核心系统清单", category: "system", items: [
@@ -188,20 +310,7 @@ var checklistData = [
         { id: "mt_noschedpunch", text: "未排班打卡教程", tag: "注意", tagType: "mytime" }
     ]},
     { title: "五、My Time — 部门名称对照表（务必熟记）", category: "deptmapping", items: [
-        { id: "dm1", text: "Com-In 部门对照（4个部门）", tag: "对照", tagType: "mytime", note: "Com-In / Graphic Communication → Communication& Interior Design\\|Graphic Design / Interior Design → Communication& Interior Design\\|Interior Design / Visual Merchandise/Act. → Communication& Interior Design\\|Visual Merchandising" },
-        { id: "dm2", text: "Cust. Relations 部门对照（4个部门）", tag: "对照", tagType: "mytime", note: "Checkout Services → Customer Services\\|Cashline / Customer Relations → Management\\|Management / Easy Buying → Customer Services\\|After Sales Administration / Shopping Experience → Customer Services\\|Småland" },
-        { id: "dm3", text: "Ful. Unit Ops. 部门对照（7个部门）", tag: "对照", tagType: "mytime", note: "Fulfilment Integration → Customer Fulfilment\\|Fulfilment Integration / Fulfilment Operations → Customer Fulfilment\\|Fulfilment Operations / Fulfilment Unit Operations → Management\\|Management / Full Truckload& SSFA → Customer Fulfilment\\|Fulfilment Operations_Goods Picking / Goods Receiving → ..._Goods Receiving / Goods Replenishment → ..._Replenishment / Service Execution → ..._Service Execution" },
-        { id: "dm4", text: "IKEA Food 部门对照（4个部门）", tag: "对照", tagType: "mytime", note: "Commercial Restaurant → IKEA Food\\|IKEA Food Restaurant / Commercial SFM& Bistro → IKEA Food\\|Bistro& Sweden Shop / IKEA Food → IKEA Food\\|IKEA Food / Kitchen Production → IKEA Food\\|Staff Restaurant" },
-        { id: "dm5", text: "Local Marketing 部门对照（2个部门）", tag: "对照", tagType: "mytime", note: "IKEA Family → Marketing\\|Marketing / Local Marketing → Marketing\\|Marketing（注意：两个OU部门在系统中显示相同）" },
-        { id: "dm6", text: "Operations 部门对照（4个部门）", tag: "对照", tagType: "mytime", note: "Business Navigation → Business Navigation\\|Business Administration / Recovery → Business Navigation\\|Product Quality& Recovery / Safety& Security → Business Navigation\\|Safety& Security 2 / Service Operations Team → SO 3 Digital Hub\\|Service Operation 3" },
-        { id: "dm7", text: "People&Culture 部门对照（1个部门）", tag: "对照", tagType: "mytime", note: "People& Culture → People& Culture\\|People& Culture" },
-        { id: "dm8", text: "Real Estate 部门对照（1个部门）", tag: "对照", tagType: "mytime", note: "Facility → Facility Management\\|Facility Management" },
-        { id: "dm9", text: "Sales 部门对照（13个部门）", tag: "对照", tagType: "mytime", note: "Children's& IKEA Family → Sales\\|Children's IKEA / Commercial Activity → Sales\\|Activities / Cooking& Eating → Sales\\|Cooking& Eating / Dining → Sales\\|Kitchen& Dining / Home Decoration → Sales\\|Decoration& Outdoor / Home Furnishing Consultant → Sales\\|Home Furnishing Consultants / Home Organization → Sales\\|Home Organisation& Second Storage / Kitchen → Sales\\|Kitchen& Dining / Lighting → Sales\\|Lighting / Living Storage& Upholstery → Sales\\|Living Room / Sales → Management\\|Management / Self Serve → Sales\\|Self Serve / Sleeping& Storing → Sales\\|Bedroom / Textiles& Bathroom → Sales\\|Textiles& Rugs / Workspace → Sales\\|Work IKEA" },
-        { id: "dm10", text: "Store Mgt. 部门对照（1个部门）", tag: "对照", tagType: "mytime", note: "Store → Management\\|Management（注意：Store Mgt和多个OU的Management部门在系统中都显示为Management\\|Management，需通过OU编号区分）" },
-        { id: "dm11", text: "⚠️ 易混淆点1：多个OU的Management部门在My Time中显示相同，需通过OU编号区分（1016/1023/1094/1101/1224等）", tag: "注意", tagType: "mytime", note: "排班和考勤时务必确认OU编号，避免误操作到其他部门" },
-        { id: "dm12", text: "⚠️ 易混淆点2：Local Marketing下IKEA Family和Local Marketing在My Time中显示相同（都是Marketing\\|Marketing），需通过OU编号1069下的子部门区分", tag: "注意", tagType: "mytime" },
-        { id: "dm13", text: "⚠️ 易混淆点3：Sales下Dining和Kitchen在My Time中都显示为Sales\\|Kitchen& Dining，但实际是两个不同OU部门", tag: "注意", tagType: "mytime" },
-        { id: "dm14", text: "掌握技巧：在My Time中排班/考勤时，先用OU编号定位到正确的Organizational Unit，再找到对应的Div_Dep部门", tag: "技巧", tagType: "mytime", note: "建议打印或截图部门对照表放在工位旁，初期操作时随时对照" }
+        { id: "dm_placeholder", text: "部门对照表已渲染为左右对应表格形式，请见下方完整对照表（此项仅用于进度统计）", tag: "对照", tagType: "mytime", note: "排班、考勤、Sign off时务必先确认OU编号，再对照Div_Dep名称定位部门" }
     ]},
     { title: "六、周期性任务日历", category: "schedule", items: [
         { id: "wk1", text: "每周：排班草稿→经理确认→最终发布（提前4周）", tag: "周常", tagType: "mid" },
@@ -257,7 +366,7 @@ var roleData = [
         { id: "r2_3", text: "与部门经理协作创建并及时发布排班，对齐工时预算", tag: "职责", tagType: "role" },
         { id: "r2_4", text: "与部门经理协作制定unit people planning优先事项", tag: "职责", tagType: "role" },
         { id: "r2_5", text: "作为unit P&C与Business Navigation之间的纽带，确保排班跟随业务预测", tag: "职责", tagType: "role" },
-        { id: "r2_6", text: "应用工具和数据分析（As-Is staffing structure & co-worker availability）改进流程", tag: "职责", tagType: "role" },
+        { id: "r2_6", text: "应用工具和数据分析改进流程", tag: "职责", tagType: "role" },
         { id: "r2_7", text: "整合业务驱动因素、工作量因素和资质需求，通过多技能支持员工发展", tag: "职责", tagType: "role" },
         { id: "r2_8", text: "与招聘经理协作，确保空缺岗位对照HC/合同级别/合同类型/能力需求审核", tag: "职责", tagType: "role" },
         { id: "r2_9", text: "在unit层面提升People Planning原则和流程的认知", tag: "职责", tagType: "role" },
@@ -267,7 +376,7 @@ var roleData = [
     { title: "三、知识与能力要求", tagType: "role", items: [
         { id: "r3_1", text: "深入理解IKEA people promise和people planning原则", tag: "知识", tagType: "role" },
         { id: "r3_2", text: "深入理解people planning流程及其在unit层面的执行方式", tag: "知识", tagType: "role" },
-        { id: "r3_3", text: "良好掌握在预算框架内实施计划，对齐业务计划优先事项", tag: "知识", tagType: "role" },
+        { id: "r3_3", text: "良好掌握在预算框架内实施计划", tag: "知识", tagType: "role" },
         { id: "r3_4", text: "良好掌握有薪工时和实际工时的维度划分", tag: "知识", tagType: "role" },
         { id: "r3_5", text: "良好掌握如何评估现有人员编制结构并提出理想合同结构", tag: "知识", tagType: "role" },
         { id: "r3_6", text: "良好掌握unit业务驱动因素和任务如何对齐改善客户体验", tag: "知识", tagType: "role" },
@@ -309,43 +418,43 @@ var guideData = [
     { title: "一、People Planning框架与原则", category: "framework", items: [
         { id: "g1_1", text: "People Planning使命：5代客户+5代员工，满足客户需求同时尊重员工需求", tag: "框架", tagType: "guide" },
         { id: "g1_2", text: "People Planning三大产出：Engaged Co-workers→Modern Solutions→Happy Customers", tag: "框架", tagType: "guide" },
-        { id: "g1_3", text: "口号：'At IKEA I plan my work' — 赋能员工管理自己的排班", tag: "框架", tagType: "guide" },
+        { id: "g1_3", text: "口号：'At IKEA I plan my work'", tag: "框架", tagType: "guide" },
         { id: "g1_4", text: "六大原则：①客户需求为起点 ②赋能员工选择班次 ③工时合规 ④灵活适应 ⑤公平 ⑥数字化工具", tag: "原则", tagType: "guide" },
-        { id: "g1_5", text: "People Planning流程框架：Plan→People→Process→Steer→Enable→Operate", tag: "流程", tagType: "guide" },
+        { id: "g1_5", text: "流程框架：Plan→People→Process→Steer→Enable→Operate", tag: "流程", tagType: "guide" },
         { id: "g1_6", text: "愿景：Better homes, Better lives, Better company", tag: "愿景", tagType: "guide" }
     ]},
     { title: "二、WH工时分配原则", category: "wh", items: [
         { id: "g2_1", text: "WH预算来源：年度销售额 + 人员成本目标 + 生产率目标", tag: "分配", tagType: "guide" },
         { id: "g2_2", text: ">500M门店WH分配：Sales 44-50%, Log 12-16%, ComIn 4.5-6%, LM 0.75-1.2%, CR 26-30%, P&C 0.8-1.8%, Ops 5-6%", tag: "分配", tagType: "guide" },
-        { id: "g2_3", text: "300-500M门店WH分配：Sales 44-50%, Log 9-15%, ComIn 6.5-9%, CR 22-26%, P&C 0.8-1.8%", tag: "分配", tagType: "guide" },
-        { id: "g2_4", text: "<300M门店WH分配：Sales 44-50%, Log 9-13%, ComIn 6-9%, CR 20-24%, P&C 0.8-1.8%", tag: "分配", tagType: "guide" },
-        { id: "g2_5", text: "按用工类型分配：40H:28H:PT = 50%:20%:30%（不含SSG工时）", tag: "分配", tagType: "guide" }
+        { id: "g2_3", text: "300-500M门店WH分配：Sales 44-50%, Log 9-15%, ComIn 6.5-9%, CR 22-26%", tag: "分配", tagType: "guide" },
+        { id: "g2_4", text: "<300M门店WH分配：Sales 44-50%, Log 9-13%, ComIn 6-9%, CR 20-24%", tag: "分配", tagType: "guide" },
+        { id: "g2_5", text: "按用工类型分配：40H:28H:PT = 50%:20%:30%", tag: "分配", tagType: "guide" }
     ]},
-    { title: "三、HC计算公式（WH to Headcount）", category: "hc", items: [
-        { id: "g3_1", text: "40H年工时：1856H = 40H×52周 - (11天法定假×8H) - (15天年假×8H) - (2天病假×8H)", tag: "公式", tagType: "guide" },
-        { id: "g3_2", text: "28H年工时：1560H = 30H×52周", tag: "公式", tagType: "guide", note: "28H合同实际按30H排班" },
-        { id: "g3_3", text: "24H年工时：1040H = 20H×52周", tag: "公式", tagType: "guide", note: "24H合同实际按20H排班" },
+    { title: "三、HC计算公式", category: "hc", items: [
+        { id: "g3_1", text: "40H年工时：1856H = 40×52 - 11×8 - 15×8 - 2×8", tag: "公式", tagType: "guide" },
+        { id: "g3_2", text: "28H年工时：1560H = 30×52", tag: "公式", tagType: "guide", note: "28H合同实际按30H排班" },
+        { id: "g3_3", text: "24H年工时：1040H = 20×52", tag: "公式", tagType: "guide" },
         { id: "g3_4", text: "HC计算：40H HC = (门店总WH×50%) / 1856", tag: "公式", tagType: "guide" },
         { id: "g3_5", text: "HC计算：28H HC = (门店总WH×20%) / 1560", tag: "公式", tagType: "guide" },
         { id: "g3_6", text: "HC计算：24H HC = (门店总WH×30%) / 1040", tag: "公式", tagType: "guide" }
     ]},
     { title: "四、用工类型详解", category: "employment", items: [
-        { id: "g4_1", text: "全职-劳动合同员工：40H按月付薪 / 28H按小时付薪，受劳动合同法保护", tag: "用工", tagType: "guide" },
-        { id: "g4_2", text: "全职-退休返聘员工：签《退休返聘合同》，劳务合同性质，可随时提前通知解除", tag: "用工", tagType: "guide" },
-        { id: "g4_3", text: "兼职-社会兼职：签《非全日制劳动合同》，每天≤4H，每周≤24H", tag: "用工", tagType: "guide" },
-        { id: "g4_4", text: "兼职-退休兼职：签《劳务合同》，每周12-40H", tag: "用工", tagType: "guide" },
+        { id: "g4_1", text: "全职-劳动合同员工：40H按月/28H按小时，受劳动合同法保护", tag: "用工", tagType: "guide" },
+        { id: "g4_2", text: "全职-退休返聘：签《退休返聘合同》，劳务合同性质", tag: "用工", tagType: "guide" },
+        { id: "g4_3", text: "兼职-社会兼职：签《非全日制劳动合同》，日≤4H，周≤24H", tag: "用工", tagType: "guide" },
+        { id: "g4_4", text: "兼职-退休兼职：签《劳务合同》，周12-40H", tag: "用工", tagType: "guide" },
         { id: "g4_5", text: "兼职-学生兼职：签《实习协议》，非法律意义上劳动者", tag: "用工", tagType: "guide" },
-        { id: "g4_6", text: "28H员工：工时更灵活，但周工时不超过32H（不含休息时间）", tag: "用工", tagType: "guide" }
+        { id: "g4_6", text: "28H员工：周工时不超过32H（不含休息时间）", tag: "用工", tagType: "guide" }
     ]},
     { title: "五、中国工时制度", category: "whs", items: [
         { id: "g5_1", text: "标准工时制：日≤8H，周≤44H，每周≥1天休息，月加班≤36H", tag: "法规", tagType: "guide" },
-        { id: "g5_2", text: "综合计算工时制：周期内总工时不超过法定标准，超出按150%支付，不区分制度工作日与公休日", tag: "法规", tagType: "guide" },
+        { id: "g5_2", text: "综合计算工时制：周期内总工时不超过法定标准，超出按150%", tag: "法规", tagType: "guide" },
         { id: "g5_3", text: "综合工时制-法定休假日工作按300%支付", tag: "法规", tagType: "guide" },
         { id: "g5_4", text: "不定时工时制：无固定工作时间限制，需劳动部门审批", tag: "法规", tagType: "guide" }
     ]},
     { title: "六、排班管理规则", category: "schedule", items: [
         { id: "g6_1", text: "连续工作≤6天确保休息1天", tag: "排班", tagType: "guide" },
-        { id: "g6_2", text: "排班需求：员工每2周可提最多2次平常日需求，每4周可提1个周末双休日需求", tag: "排班", tagType: "guide" },
+        { id: "g6_2", text: "排班需求：每2周可提最多2次平常日需求，每4周可提1个周末双休日需求", tag: "排班", tagType: "guide" },
         { id: "g6_3", text: "两个班次间隔不少于11小时", tag: "排班", tagType: "guide" },
         { id: "g6_4", text: "每天只排一个班次", tag: "排班", tagType: "guide" },
         { id: "g6_5", text: "怀孕和哺乳期员工不排18时以后的班次", tag: "排班", tagType: "guide", note: "⚠️ 合规红线" },
@@ -355,34 +464,34 @@ var guideData = [
         { id: "g7_1", text: "≤4H：不设休息时间", tag: "休息", tagType: "guide" },
         { id: "g7_2", text: "4H以上至6H（含6H）：休息0.5小时", tag: "休息", tagType: "guide" },
         { id: "g7_3", text: "6H以上至10H：休息1小时（含30min用餐+2次15min休息）", tag: "休息", tagType: "guide" },
-        { id: "g7_4", text: "=10H：休息2小时，由直线经理安排", tag: "休息", tagType: "guide" }
+        { id: "g7_4", text: "=10H：休息2小时", tag: "休息", tagType: "guide" }
     ]},
     { title: "八、薪酬与发薪规则", category: "payroll", items: [
-        { id: "g8_1", text: "40H员工：每月25日发薪，支付周期=当月1日~月底", tag: "发薪", tagType: "guide" },
-        { id: "g8_2", text: "28H员工：每月25日发薪，支付周期=上月16日~当月15日", tag: "发薪", tagType: "guide" },
+        { id: "g8_1", text: "40H：每月25日发薪，周期=当月1日~月底", tag: "发薪", tagType: "guide" },
+        { id: "g8_2", text: "28H：每月25日发薪，周期=上月16日~当月15日", tag: "发薪", tagType: "guide" },
         { id: "g8_3", text: "24H社会兼职：每月10日及25日分两次发薪", tag: "发薪", tagType: "guide" },
-        { id: "g8_4", text: "24H学生工/退休兼职：每月25日发薪，支付周期=上月16日~本月15日", tag: "发薪", tagType: "guide" },
-        { id: "g8_5", text: "Kronos Payroll Lock：每次Sign off后锁定往期考勤卡，无人可修改", tag: "发薪", tagType: "guide" },
-        { id: "g8_6", text: "Sign off日历：每月2日和16日为Sign off日，分别锁定半月前考勤卡", tag: "发薪", tagType: "guide" }
+        { id: "g8_4", text: "24H学生工/退休兼职：每月25日发薪，周期=上月16日~本月15日", tag: "发薪", tagType: "guide" },
+        { id: "g8_5", text: "Kronos Payroll Lock：每次Sign off后锁定往期考勤卡", tag: "发薪", tagType: "guide" },
+        { id: "g8_6", text: "Sign off日历：每月2日和16日为Sign off日", tag: "发薪", tagType: "guide" }
     ]},
     { title: "九、常用工资代码", category: "paycode", items: [
         { id: "g9_1", text: "Productive Hours-RET：生产力工时-零售", tag: "代码", tagType: "guide" },
-        { id: "g9_2", text: "Business Travel hours出差工时：在外培训/开会/市调，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_3", text: "Meeting Hours会议工时：在自己商场的会议，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_4", text: "Training Hours培训工时：年度计划内的培训，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_5", text: "Rebuild改造工时：在自己店进行改造工作，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_6", text: "Project Hours项目工时：支援别的店，⚠️ 不属于本商场工时！", tag: "代码", tagType: "guide" },
+        { id: "g9_2", text: "Business Travel hours：在外培训/开会/市调，属于本商场工时", tag: "代码", tagType: "guide" },
+        { id: "g9_3", text: "Meeting Hours：在自己商场的会议，属于本商场工时", tag: "代码", tagType: "guide" },
+        { id: "g9_4", text: "Training Hours：年度计划内的培训，属于本商场工时", tag: "代码", tagType: "guide" },
+        { id: "g9_5", text: "Rebuild：在自己店进行改造工作，属于本商场工时", tag: "代码", tagType: "guide" },
+        { id: "g9_6", text: "Project Hours：支援别的店，⚠️ 不属于本商场工时！", tag: "代码", tagType: "guide" },
         { id: "g9_7", text: "OT 1.5 / OT 3：加班工时-1.5倍 / 加班工时-3倍", tag: "代码", tagType: "guide" },
         { id: "g9_8", text: "Regular：正常工时 / Manual Input Hour：手动添加工时", tag: "代码", tagType: "guide" }
     ]},
     { title: "十、季度工时与OT Tracking", category: "ottrack", items: [
         { id: "g10_1", text: "Compensation Leave 100/200：调休假100/200", tag: "季度", tagType: "guide" },
-        { id: "g10_2", text: "各类假期代码：丧假/住院假/婚假/产假/护理假/陪产假/工伤假/产前检查假等", tag: "季度", tagType: "guide" },
+        { id: "g10_2", text: "各类假期代码：丧假/住院假/婚假/产假/护理假/陪产假/工伤假等", tag: "季度", tagType: "guide" },
         { id: "g10_3", text: "年假代码：公司年假/法定年假/上年公司年假/上年法定年假", tag: "季度", tagType: "guide" },
-        { id: "g10_4", text: "Q&A经典三问：Project Hour是否属于Productive Hour？Meeting Hour是否属于Productive Hour？排Paycode的员工还需打卡吗？", tag: "Q&A", tagType: "guide" }
+        { id: "g10_4", text: "Q&A经典三问：Project Hour是否属于Productive Hour？Meeting Hour？排Paycode的员工还需打卡吗？", tag: "Q&A", tagType: "guide" }
     ]},
     { title: "十一、宜家公司年假", category: "leave", items: [
-        { id: "g11_1", text: "宜家年假 = 法定年假 + 公司年假，统计为自然日（1月1日至12月31日）", tag: "年假", tagType: "guide" },
+        { id: "g11_1", text: "宜家年假 = 法定年假 + 公司年假，统计为自然日", tag: "年假", tagType: "guide" },
         { id: "g11_2", text: "SSG年假：2022年9月1日前入职=20天起始；之后=15天起始", tag: "年假", tagType: "guide" },
         { id: "g11_3", text: "公司年假（按宜家服务年限N）：N<5=15天；5≤N<10=17天；10≤N<15=19天；15≤N<20=21天；20≤N<25=23天；N≥25=25天", tag: "年假", tagType: "guide", note: "按天折算向上取整" },
         { id: "g11_4", text: "法定年假（按社会工龄N）：N<10=5天；10≤N<20=10天；N≥20=15天", tag: "年假", tagType: "guide", note: "按天折算向下取整" },
@@ -397,21 +506,21 @@ var guideData = [
         { id: "g12_5", text: "请定期提醒部门经理年假使用情况", tag: "结转", tagType: "guide" }
     ]},
     { title: "十三、年假计算案例", category: "leavecalc", items: [
-        { id: "g13_1", text: "案例1：8月12日入职全职员工，社会工龄5年", tag: "案例", tagType: "guide", note: "法定年假=5/365×142≈1天；宜家年假=15/365×142≈6天；公司年假=6-1=5天" },
-        { id: "g13_2", text: "案例2：2014年7月7日加入宜家的应届生，2019年应享多少公司年假？", tag: "案例", tagType: "guide", note: "社会工龄5年→法定年假5天；宜家年假≈16天；公司年假=16-5=11天" }
+        { id: "g13_1", text: "案例1：8月12日入职全职员工，社会工龄5年", tag: "案例", tagType: "guide", note: "法定年假≈1天；宜家年假≈6天；公司年假=5天" },
+        { id: "g13_2", text: "案例2：2014年7月7日加入宜家的应届生，2019年应享多少公司年假？", tag: "案例", tagType: "guide", note: "公司年假=11天" }
     ]},
     { title: "十四、FY23预算原则", category: "budget", items: [
         { id: "g14_1", text: "预算范围：Store managed staff cost before SFF", tag: "预算", tagType: "guide" },
-        { id: "g14_2", text: "FY23新增：Lending co-worker booking impact / Picking cost booked in margin", tag: "预算", tagType: "guide" },
-        { id: "g14_3", text: "预算原则：Zero based cost budgeting，基准=Market sales benchmark", tag: "预算", tagType: "guide" },
-        { id: "g14_4", text: "调整项：城市层级劳动力成本差异/Fulfilment volume/Return impact/Social insurance/Lending impact", tag: "预算", tagType: "guide" }
+        { id: "g14_2", text: "FY23新增：Lending co-worker booking impact / Picking cost", tag: "预算", tagType: "guide" },
+        { id: "g14_3", text: "预算原则：Zero based cost budgeting", tag: "预算", tagType: "guide" },
+        { id: "g14_4", text: "调整项：城市层级劳动力成本差异/Fulfilment volume/Return impact等", tag: "预算", tagType: "guide" }
     ]},
     { title: "十五、Staff Cost定义与CPWH", category: "staffcost", items: [
         { id: "g15_1", text: "Staff Cost(Total) = Staff Cost + Other Staff Cost", tag: "成本", tagType: "guide" },
         { id: "g15_2", text: "Staff Cost包含：Salary/Holiday pay/Social charges/Overtime/Sub-contract/Relocation", tag: "成本", tagType: "guide" },
-        { id: "g15_3", text: "Other Staff Cost包含：Recruitment/F&B recharge/Staff entertainment/Uniforms/Training/Insurance/Compensation", tag: "成本", tagType: "guide" },
-        { id: "g15_4", text: "CPWH = Total Staff Cost / Worked Hour（每工时成本）", tag: "成本", tagType: "guide" },
-        { id: "g15_5", text: "生产率 = Sales Volume (dm³) / Working Hour（按体积衡量）", tag: "成本", tagType: "guide" }
+        { id: "g15_3", text: "Other Staff Cost包含：Recruitment/F&B recharge/Uniforms/Training/Insurance等", tag: "成本", tagType: "guide" },
+        { id: "g15_4", text: "CPWH = Total Staff Cost / Worked Hour", tag: "成本", tagType: "guide" },
+        { id: "g15_5", text: "生产率 = Sales Volume (dm³) / Working Hour", tag: "成本", tagType: "guide" }
     ]},
     { title: "十六、WH Budget流程", category: "whbudget", items: [
         { id: "g16_1", text: "WH Budget来源：Sales turnover + Staff cost goal + Productivity goal", tag: "流程", tagType: "guide" },
@@ -448,6 +557,151 @@ function switchTab(tabName) {
     if (tabName === 'guide') renderGuideList();
 }
 
+/* ================= 部门对照表渲染 ================= */
+function renderDeptMappingTable(container) {
+    var state = loadState(CHECKLIST_KEY);
+    var wrapper = document.createElement('div');
+    wrapper.className = 'dept-table-container';
+    wrapper.innerHTML =
+        '<h3>🏢 苏州门店 部门名称完整对照表</h3>' +
+        '<div class="dept-subtitle">日常叫法（Organizational Unit） ⟷ My Time系统显示名称（Div_Dep）| 共10个OU、42个部门</div>' +
+        '<div class="dept-search-box"><input type="text" id="dept-search" placeholder="🔍 在对照表中搜索部门名称（如：Sales、Kitchen、Management、Recovery...）"></div>' +
+        '<div class="dept-progress" id="dept-progress"></div>';
+
+    var table = document.createElement('table');
+    table.className = 'dept-table';
+    table.id = 'dept-mapping-table';
+    table.innerHTML =
+        '<thead><tr>' +
+        '<th style="width:7%;">OU编号</th>' +
+        '<th style="width:18%;">日常叫法<br><small style="font-weight:normal; opacity:0.8;">Organizational Unit</small></th>' +
+        '<th style="width:22%;">My Time Div<br><small style="font-weight:normal; opacity:0.8;">（系统Division）</small></th>' +
+        '<th style="width:22%;">My Time Dept<br><small style="font-weight:normal; opacity:0.8;">（系统Department）</small></th>' +
+        '<th style="width:31%;">系统完整显示名称<br><small style="font-weight:normal; opacity:0.8;">Div \\| Dept</small></th>' +
+        '</tr></thead><tbody id="dept-tbody"></tbody>';
+
+    wrapper.appendChild(table);
+
+    /* 易混淆提醒框 */
+    var warnBox = document.createElement('div');
+    warnBox.className = 'dept-warn-box';
+    warnBox.innerHTML =
+        '<h4>⚠️ 易混淆提醒（务必注意）</h4>' +
+        '<p>1. <b>Management \\| Management</b>：多个OU都有此部门（1016 Com-In / 1023 CR / 1094 Sales / 1101 Store Mgt / 1224 Ful），My Time中显示完全相同，<b>必须通过OU编号区分</b></p>' +
+        '<p>2. <b>Marketing \\| Marketing</b>：Local Marketing下 IKEA Family 和 Local Marketing 两个部门在My Time中显示相同，需通过OU 1069下的子部门区分</p>' +
+        '<p>3. <b>Sales \\| Kitchen& Dining</b>：Sales下 Dining 和 Kitchen 是两个不同部门，但My Time中都显示为 Sales \\| Kitchen& Dining</p>' +
+        '<p>4. <b>Safety& Security <span style="color:#e65100;">2</span></b>：Operations下 Safety& Security 部门在My Time中Dept名称带有数字"2"，注意不要遗漏</p>';
+    wrapper.appendChild(warnBox);
+
+    /* 学习打卡清单 */
+    var checklistDiv = document.createElement('div');
+    checklistDiv.style.marginTop = '15px';
+    checklistDiv.innerHTML = '<h4 style="font-size:14px; color:var(--mytime-color); margin-bottom:10px;">✅ 部门熟记打卡（勾选已掌握的模块）</h4>';
+    var deptDone = 0, deptTotal = deptChecklistItems.length;
+    deptChecklistItems.forEach(function(item) {
+        var isChecked = state[item.id] || false;
+        if (isChecked) deptDone++;
+        var div = document.createElement('div');
+        div.className = 'dept-checklist-item';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.id = 'cb_' + item.id; cb.checked = isChecked;
+        cb.onclick = function(e) { e.stopPropagation(); };
+        cb.onchange = function() {
+            var st = loadState(CHECKLIST_KEY);
+            st[item.id] = this.checked; saveState(CHECKLIST_KEY, st);
+            renderDeptMappingTable(container); // 重新渲染以更新进度
+            renderChecklist(); // 更新总进度
+        };
+        var lbl = document.createElement('label');
+        lbl.htmlFor = 'cb_' + item.id;
+        lbl.textContent = item.text;
+        if (isChecked) lbl.style.textDecoration = 'line-through';
+        div.appendChild(cb); div.appendChild(lbl);
+        checklistDiv.appendChild(div);
+    });
+    var deptPct = deptTotal > 0 ? Math.round((deptDone / deptTotal) * 100) : 0;
+    var progressEl = document.createElement('div');
+    progressEl.className = 'dept-progress';
+    progressEl.innerHTML = '部门熟记进度: <b>' + deptDone + '/' + deptTotal + '</b> (' + deptPct + '%)';
+    checklistDiv.appendChild(progressEl);
+    wrapper.appendChild(checklistDiv);
+
+    /* 操作技巧 */
+    var tipDiv = document.createElement('div');
+    tipDiv.style.cssText = 'background:#e8f5e9; border:1px solid #a5d6a7; border-radius:6px; padding:12px 15px; margin-top:15px;';
+    tipDiv.innerHTML =
+        '<p style="font-size:13px; color:#2e7d32;"><b>💡 操作技巧</b></p>' +
+        '<p style="font-size:12px; color:#555; margin-top:5px;">在My Time中排班/考勤/Sign off时，<b>先用OU编号定位到正确的Organizational Unit</b>，再找到对应的Div_Dep部门。建议截图或打印本对照表放在工位旁，初期操作时随时对照。</p>';
+    wrapper.appendChild(tipDiv);
+
+    container.appendChild(wrapper);
+
+    /* 填充表格行 */
+    var tbody = document.getElementById('dept-tbody');
+    deptMappingData.forEach(function(ou) {
+        /* OU分组行 */
+        var groupTr = document.createElement('tr');
+        groupTr.className = 'ou-group-row';
+        groupTr.innerHTML = '<td colspan="5">' + ou.ouName + ' <span class="ou-code">（OU ' + ou.ouCode + ' — ' + ou.ouLabel + '）</span></td>';
+        groupTr.setAttribute('data-ou', ou.ouName);
+        tbody.appendChild(groupTr);
+
+        ou.depts.forEach(function(dept) {
+            var tr = document.createElement('tr');
+            if (dept.warn) tr.className = 'warn-cell';
+            tr.setAttribute('data-search', (ou.ouName + ' ' + ou.ouLabel + ' ' + dept.daily + ' ' + dept.mtDiv + ' ' + dept.mtDept + ' ' + ou.ouCode).toLowerCase());
+            tr.setAttribute('data-ou', ou.ouName);
+            var warnIcon = dept.warn ? ' <span style="color:#e65100;" title="' + (dept.warnNote || '') + '">⚠️</span>' : '';
+            var fullDisplay = dept.mtDiv + ' \\| ' + dept.mtDept;
+            tr.innerHTML =
+                '<td class="col-ou">' + ou.ouCode + '</td>' +
+                '<td class="col-daily">' + dept.daily + warnIcon + '</td>' +
+                '<td class="col-mt">' + dept.mtDiv + '</td>' +
+                '<td class="col-mt-dept">' + dept.mtDept + '</td>' +
+                '<td class="col-mt" style="font-family:monospace; font-size:11px; color:#888;">' + fullDisplay + '</td>';
+            if (dept.warn && dept.warnNote) {
+                tr.title = dept.warnNote;
+            }
+            tbody.appendChild(tr);
+        });
+    });
+
+    /* 部门搜索功能 */
+    var searchInput = document.getElementById('dept-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var keyword = this.value.toLowerCase().trim();
+            var rows = tbody.querySelectorAll('tr');
+            var currentOU = null;
+            var ouHasMatch = false;
+            rows.forEach(function(row) {
+                if (row.classList.contains('ou-group-row')) {
+                    currentOU = row;
+                    ouHasMatch = false;
+                    if (keyword === '') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none'; // 先隐藏，有匹配项时再显示
+                    }
+                } else {
+                    if (keyword === '') {
+                        row.style.display = '';
+                    } else {
+                        var searchText = row.getAttribute('data-search') || '';
+                        if (searchText.indexOf(keyword) !== -1) {
+                            row.style.display = '';
+                            ouHasMatch = true;
+                            if (currentOU) currentOU.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+    }
+}
+
 /* ================= 通用列表渲染 ================= */
 function renderList(data, containerId, stateKey, isChecklist) {
     var state = loadState(stateKey);
@@ -477,6 +731,24 @@ function renderList(data, containerId, stateKey, isChecklist) {
         else if (section.tagType === 'role') h2.className = 'role';
         else if (section.tagType === 'guide') h2.className = 'guide';
         secEl.appendChild(h2);
+
+        /* 特殊处理：部门对照表模块用表格形式渲染 */
+        if (isChecklist && section.category === 'deptmapping') {
+            secEl.appendChild(h2);
+            var introP = document.createElement('p');
+            introP.style.cssText = 'font-size:13px; color:#666; margin-bottom:10px; padding-left:10px;';
+            introP.innerHTML = '排班、考勤、Sign off时，日常叫法和My Time系统显示名称往往不同。请对照下表逐一熟记，避免操作时找不到正确部门。';
+            secEl.appendChild(introP);
+            renderDeptMappingTable(secEl);
+            container.appendChild(secEl);
+            /* 统计部门打卡项 */
+            deptChecklistItems.forEach(function(item) {
+                total++;
+                if (state[item.id]) done++;
+            });
+            return;
+        }
+
         var ul = document.createElement('ul');
         section.items.forEach(function(item) {
             total++;
@@ -542,12 +814,21 @@ function doSearch() {
         var sectionMatched = false;
         if (filterVal && filterVal !== secCat && filterVal !== secTitle) { sec.style.display = 'none'; return; }
         sec.style.display = '';
-        var items = sec.querySelectorAll('li');
-        items.forEach(function(li) {
-            var searchText = li.getAttribute('data-search') || '';
-            if (keyword === '' || searchText.indexOf(keyword) !== -1) { li.classList.remove('hidden'); visibleCount++; sectionMatched = true; }
-            else { li.classList.add('hidden'); }
-        });
+        /* 部门对照表模块特殊处理：不隐藏，只在有搜索关键词时过滤表格行 */
+        if (secCat === 'deptmapping') {
+            if (keyword) {
+                var deptSearch = document.getElementById('dept-search');
+                if (deptSearch) { deptSearch.value = keyword; deptSearch.dispatchEvent(new Event('input')); }
+            }
+            sectionMatched = true; visibleCount += deptChecklistItems.length;
+        } else {
+            var items = sec.querySelectorAll('li');
+            items.forEach(function(li) {
+                var searchText = li.getAttribute('data-search') || '';
+                if (keyword === '' || searchText.indexOf(keyword) !== -1) { li.classList.remove('hidden'); visibleCount++; sectionMatched = true; }
+                else { li.classList.add('hidden'); }
+            });
+        }
         if (!sectionMatched && keyword !== '') { sec.style.display = 'none'; }
     });
     document.getElementById('search-count').textContent = keyword || filterVal ? '显示 ' + visibleCount + ' 项' : '';
@@ -558,96 +839,6 @@ function insertChecklistRefBoxes(container) {
     var sections = container.querySelectorAll('section');
     sections.forEach(function(sec) {
         var h2text = sec.querySelector('h2').textContent;
-
-        /* 部门对照完整速查表 */
-        if (h2text.indexOf('部门名称对照表') !== -1) {
-            var refDept = document.createElement('div');
-            refDept.className = 'ref-box';
-            refDept.innerHTML =
-                '<h3>🏢 苏州门店 部门名称完整对照表（OU → My Time Div_Dep）</h3>' +
-                '<p>💡 排班、考勤、Sign off时务必先确认OU编号，再对照Div_Dep名称定位部门</p>' +
-                '<table>' +
-                '<tr class="ou-group"><td colspan="4">OU 1016 — Com-In（沟通陈列部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Com-In</td><td>1016</td><td>Management</td><td>Management</td></tr>' +
-                '<tr><td>Graphic Communication</td><td>1016</td><td>Communication& Interior Design</td><td>Graphic Design</td></tr>' +
-                '<tr><td>Interior Design</td><td>1016</td><td>Communication& Interior Design</td><td>Interior Design</td></tr>' +
-                '<tr><td>Visual Merchandise/Act.</td><td>1016</td><td>Communication& Interior Design</td><td>Visual Merchandising</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1023 — Cust. Relations（客服关系部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Checkout Services</td><td>1023</td><td>Customer Services</td><td>Cashline</td></tr>' +
-                '<tr><td>Customer Relations</td><td>1023</td><td>Management</td><td>Management</td></tr>' +
-                '<tr><td>Easy Buying</td><td>1023</td><td>Customer Services</td><td>After Sales Administration</td></tr>' +
-                '<tr><td>Shopping Experience</td><td>1023</td><td>Customer Services</td><td>Småland</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1224 — Ful. Unit Ops.（物流运营部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Fulfilment Integration</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Integration</td></tr>' +
-                '<tr><td>Fulfilment Operations</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Operations</td></tr>' +
-                '<tr><td>Fulfilment Unit Operations</td><td>1224</td><td>Management</td><td>Management</td></tr>' +
-                '<tr><td>Full Truckload& SSFA</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Operations_Goods Picking</td></tr>' +
-                '<tr><td>Goods Receiving</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Operations_Goods Receiving</td></tr>' +
-                '<tr><td>Goods Replenishment</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Operations_Replenishment</td></tr>' +
-                '<tr><td>Service Execution</td><td>1224</td><td>Customer Fulfilment</td><td>Fulfilment Operations_Service Execution</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1050 — IKEA Food（餐饮部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Commercial Restaurant</td><td>1050</td><td>IKEA Food</td><td>IKEA Food Restaurant</td></tr>' +
-                '<tr><td>Commercial SFM& Bistro</td><td>1050</td><td>IKEA Food</td><td>Bistro& Sweden Shop</td></tr>' +
-                '<tr><td>IKEA Food</td><td>1050</td><td>IKEA Food</td><td>IKEA Food</td></tr>' +
-                '<tr><td>Kitchen Production</td><td>1050</td><td>IKEA Food</td><td>Staff Restaurant</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1069 — Local Marketing（本地市场部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>IKEA Family</td><td>1069</td><td>Marketing</td><td>Marketing</td></tr>' +
-                '<tr><td>Local Marketing</td><td>1069</td><td>Marketing</td><td>Marketing</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1077 — Operations（运营部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Business Navigation</td><td>1077</td><td>Business Navigation</td><td>Business Administration</td></tr>' +
-                '<tr><td>Recovery</td><td>1077</td><td>Business Navigation</td><td>Product Quality& Recovery</td></tr>' +
-                '<tr><td>Safety& Security</td><td>1077</td><td>Business Navigation</td><td>Safety& Security 2</td></tr>' +
-                '<tr><td>Service Operations Team</td><td>1077</td><td>SO 3 Digital Hub</td><td>Service Operation 3</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1193 — People&Culture（人事文化部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>People& Culture</td><td>1193</td><td>People& Culture</td><td>People& Culture</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1191 — Real Estate（物业部）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Facility</td><td>1191</td><td>Facility Management</td><td>Facility Management</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1094 — Sales（销售部，共13个子部门）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Children\'s& IKEA Family</td><td>1094</td><td>Sales</td><td>Children\'s IKEA</td></tr>' +
-                '<tr><td>Commercial Activity</td><td>1094</td><td>Sales</td><td>Activities</td></tr>' +
-                '<tr><td>Cooking& Eating</td><td>1094</td><td>Sales</td><td>Cooking& Eating</td></tr>' +
-                '<tr><td>Dining</td><td>1094</td><td>Sales</td><td>Kitchen& Dining</td></tr>' +
-                '<tr><td>Home Decoration</td><td>1094</td><td>Sales</td><td>Decoration& Outdoor</td></tr>' +
-                '<tr><td>Home Furnishing Consultant</td><td>1094</td><td>Sales</td><td>Home Furnishing Consultants</td></tr>' +
-                '<tr><td>Home Organization</td><td>1094</td><td>Sales</td><td>Home Organisation& Second Storage</td></tr>' +
-                '<tr><td>Kitchen</td><td>1094</td><td>Sales</td><td>Kitchen& Dining</td></tr>' +
-                '<tr><td>Lighting</td><td>1094</td><td>Sales</td><td>Lighting</td></tr>' +
-                '<tr><td>Living Storage& Upholstery</td><td>1094</td><td>Sales</td><td>Living Room</td></tr>' +
-                '<tr><td>Sales</td><td>1094</td><td>Management</td><td>Management</td></tr>' +
-                '<tr><td>Self Serve</td><td>1094</td><td>Sales</td><td>Self Serve</td></tr>' +
-                '<tr><td>Sleeping& Storing</td><td>1094</td><td>Sales</td><td>Bedroom</td></tr>' +
-                '<tr><td>Textiles& Bathroom</td><td>1094</td><td>Sales</td><td>Textiles& Rugs</td></tr>' +
-                '<tr><td>Workspace</td><td>1094</td><td>Sales</td><td>Work IKEA</td></tr>' +
-
-                '<tr class="ou-group"><td colspan="4">OU 1101 — Store Mgt.（店管理层）</td></tr>' +
-                '<tr><th>日常叫法</th><th>OU编号</th><th>My Time Div</th><th>My Time Dept</th></tr>' +
-                '<tr><td>Store</td><td>1101</td><td>Management</td><td>Management</td></tr>' +
-                '</table>' +
-                '<p style="margin-top:10px; color:#c0392b;"><b>⚠️ 易混淆提醒：</b></p>' +
-                '<p>1. 多个OU都有 Management\\|Management 部门（1016/1023/1094/1101/1224），系统显示相同，必须通过OU编号区分</p>' +
-                '<p>2. Local Marketing下两个子部门在系统中都显示为 Marketing\\|Marketing</p>' +
-                '<p>3. Sales下 Dining 和 Kitchen 在系统中都显示为 Sales\\|Kitchen& Dining，但实际是两个不同部门</p>' +
-                '<p>4. Safety& Security 的My Time Dept显示为 Safety& Security <b>2</b>（注意数字2）</p>';
-            sec.appendChild(refDept);
-        }
-
         if (h2text.indexOf('My Time — 考勤全流程') !== -1) {
             var refBox = document.createElement('div'); refBox.className = 'ref-box';
             refBox.innerHTML = '<h3>📋 My Time 考勤卡列表含义（速查）</h3><table><tr><th>代码</th><th>含义</th><th>说明</th></tr><tr><td>Regular</td><td>正常打卡工时</td><td>按排班正常出勤</td></tr><tr><td>OT</td><td>批准的加班工时</td><td>需提前企微审批</td></tr><tr><td>DT</td><td>未经批准的超出工时</td><td>需经理确认</td></tr><tr><td>PTO</td><td>带薪假期</td><td>年假/病假等</td></tr><tr><td>CP</td><td>其他支付</td><td>出差/项目工时</td></tr><tr><td>Extra Pay</td><td>传统津贴</td><td>Extra Pay相关</td></tr></table>';
@@ -655,12 +846,12 @@ function insertChecklistRefBoxes(container) {
         }
         if (h2text.indexOf('My Time — 排班全流程') !== -1) {
             var refBox4 = document.createElement('div'); refBox4.className = 'ref-box';
-            refBox4.innerHTML = '<h3>🏖️ 休息时间规则（按班次长度）</h3><table><tr><th>班次长度</th><th>休息时间</th></tr><tr><td>≤ 4H</td><td>无休息</td></tr><tr><td>4H < 班次 ≤ 6H</td><td>0.5小时</td></tr><tr><td>6H < 班次 ≤ 10H</td><td>1小时（30min用餐+2×15min休息）</td></tr><tr><td>班次 = 10H</td><td>2小时</td></tr></table><p style="font-size:12px; color:#666; margin-top:8px;">💡 班次间最小间隔11小时；怀孕和哺乳期员工不排18时后班次</p>';
+            refBox4.innerHTML = '<h3>🏖️ 休息时间规则</h3><table><tr><th>班次长度</th><th>休息时间</th></tr><tr><td>≤ 4H</td><td>无休息</td></tr><tr><td>4H < 班次 ≤ 6H</td><td>0.5小时</td></tr><tr><td>6H < 班次 ≤ 10H</td><td>1小时（30min用餐+2×15min休息）</td></tr><tr><td>班次 = 10H</td><td>2小时</td></tr></table>';
             sec.appendChild(refBox4);
         }
         if (h2text.indexOf('My Time — 其他注意事项') !== -1) {
             var refBox2 = document.createElement('div'); refBox2.className = 'ref-box';
-            refBox2.innerHTML = '<h3>⏱️ 系统取整逻辑速查</h3><table><tr><th>场景</th><th>规则</th></tr><tr><td>有排班·上班打卡</td><td>晚于上班时间超1H，往后取整至最近15min</td></tr><tr><td>有排班·下班打卡</td><td>早于下班时间超5min，往前取整至最近15min</td></tr><tr><td>无排班·上班打卡</td><td>往后取整至最近15min</td></tr><tr><td>无排班·下班打卡</td><td>往前取整至最近15min</td></tr></table>';
+            refBox2.innerHTML = '<h3>⏱️ 系统取整逻辑</h3><table><tr><th>场景</th><th>规则</th></tr><tr><td>有排班·上班打卡</td><td>晚于上班时间超1H，往后取整至最近15min</td></tr><tr><td>有排班·下班打卡</td><td>早于下班时间超5min，往前取整至最近15min</td></tr><tr><td>无排班·上班打卡</td><td>往后取整至最近15min</td></tr><tr><td>无排班·下班打卡</td><td>往前取整至最近15min</td></tr></table>';
             sec.appendChild(refBox2);
         }
     });
@@ -672,37 +863,37 @@ function insertGuideRefBoxes(container) {
         var h2text = sec.querySelector('h2').textContent;
         if (h2text.indexOf('WH工时分配原则') !== -1) {
             var ref = document.createElement('div'); ref.className = 'ref-box guide';
-            ref.innerHTML = '<h3>📊 工时分配速查表（按门店体量）</h3><table><tr><th>功能</th><th>>500M</th><th>300-500M</th><th><300M</th></tr><tr><td>Sales</td><td>44-50%</td><td>44-50%</td><td>44-50%</td></tr><tr><td>Logistics</td><td>12-16%</td><td>9-15%</td><td>9-13%</td></tr><tr><td>Com&In</td><td>4.5-6%</td><td>6.5-9%</td><td>6-9%</td></tr><tr><td>LM</td><td>0.75-1.2%</td><td>0.8-1.5%</td><td>0.8-1.5%</td></tr><tr><td>CR</td><td>26-30%</td><td>22-26%</td><td>20-24%</td></tr><tr><td>P&C</td><td>0.8-1.8%</td><td>0.8-1.8%</td><td>0.8-1.8%</td></tr><tr><td>Ops</td><td>5-6%</td><td>5-7%</td><td>5-7%</td></tr></table>';
+            ref.innerHTML = '<h3>📊 工时分配速查表</h3><table><tr><th>功能</th><th>>500M</th><th>300-500M</th><th><300M</th></tr><tr><td>Sales</td><td>44-50%</td><td>44-50%</td><td>44-50%</td></tr><tr><td>Logistics</td><td>12-16%</td><td>9-15%</td><td>9-13%</td></tr><tr><td>Com&In</td><td>4.5-6%</td><td>6.5-9%</td><td>6-9%</td></tr><tr><td>CR</td><td>26-30%</td><td>22-26%</td><td>20-24%</td></tr><tr><td>P&C</td><td>0.8-1.8%</td><td>0.8-1.8%</td><td>0.8-1.8%</td></tr><tr><td>Ops</td><td>5-6%</td><td>5-7%</td><td>5-7%</td></tr></table>';
             sec.appendChild(ref);
         }
         if (h2text.indexOf('HC计算公式') !== -1) {
             var ref2 = document.createElement('div'); ref2.className = 'ref-box guide';
-            ref2.innerHTML = '<h3>🔢 HC计算示例（年预算260,000工时）</h3><table><tr><th>类型</th><th>分配比例</th><th>年工时</th><th>HC计算</th></tr><tr><td>40H</td><td>50%</td><td>1856H</td><td>260000×50%/1856 ≈ 70人</td></tr><tr><td>28H</td><td>20%</td><td>1560H</td><td>260000×20%/1560 ≈ 33人</td></tr><tr><td>24H</td><td>30%</td><td>1040H</td><td>260000×30%/1040 ≈ 75人</td></tr></table><p>💡 40H年工时=40×52-(11×8)-(15×8)-(2×8)=1856</p>';
+            ref2.innerHTML = '<h3>🔢 HC计算示例</h3><table><tr><th>类型</th><th>比例</th><th>年工时</th><th>HC</th></tr><tr><td>40H</td><td>50%</td><td>1856H</td><td>≈70人</td></tr><tr><td>28H</td><td>20%</td><td>1560H</td><td>≈33人</td></tr><tr><td>24H</td><td>30%</td><td>1040H</td><td>≈75人</td></tr></table>';
             sec.appendChild(ref2);
         }
         if (h2text.indexOf('用工类型详解') !== -1) {
             var ref3 = document.createElement('div'); ref3.className = 'ref-box guide';
-            ref3.innerHTML = '<h3>📋 用工类型对比表</h3><table><tr><th>用工类型</th><th>员工类型</th><th>合同类型</th><th>工作时间</th><th>法律意义</th></tr><tr><td>全职</td><td>劳动合同员工</td><td>《劳动合同》</td><td>40H按月/28H按小时</td><td>受劳动合同法保护</td></tr><tr><td>全职</td><td>退休返聘员工</td><td>《退休返聘合同》</td><td>40H/28H</td><td>劳务合同性质</td></tr><tr><td>兼职</td><td>社会兼职</td><td>《非全日制劳动合同》</td><td>12H+24H，周≥12H</td><td>日≤4H，周≤24H</td></tr><tr><td>兼职</td><td>退休兼职</td><td>《劳务合同》</td><td>12H+40H，周≥12H</td><td>劳务合同</td></tr><tr><td>兼职</td><td>学生兼职</td><td>《实习协议》</td><td>12H+40H，周≥12H</td><td>非法律意义上劳动者</td></tr></table>';
+            ref3.innerHTML = '<h3>📋 用工类型对比</h3><table><tr><th>类型</th><th>合同</th><th>工时</th></tr><tr><td>全职-劳动合同</td><td>《劳动合同》</td><td>40H/28H</td></tr><tr><td>全职-退休返聘</td><td>《退休返聘合同》</td><td>40H/28H</td></tr><tr><td>兼职-社会兼职</td><td>《非全日制劳动合同》</td><td>日≤4H，周≤24H</td></tr><tr><td>兼职-退休兼职</td><td>《劳务合同》</td><td>周12-40H</td></tr><tr><td>兼职-学生兼职</td><td>《实习协议》</td><td>周≥12H</td></tr></table>';
             sec.appendChild(ref3);
         }
         if (h2text.indexOf('薪酬与发薪') !== -1) {
             var ref4 = document.createElement('div'); ref4.className = 'ref-box guide';
-            ref4.innerHTML = '<h3>💰 发薪日与支付周期速查</h3><table><tr><th>员工类型</th><th>发薪日</th><th>支付周期</th></tr><tr><td>40H</td><td>每月25日</td><td>当月1日~月底</td></tr><tr><td>28H</td><td>每月25日</td><td>上月16日~当月15日</td></tr><tr><td>24H社会兼职(第1次)</td><td>每月10日</td><td>上月16日~月底</td></tr><tr><td>24H社会兼职(第2次)</td><td>每月25日</td><td>当月1日~15日</td></tr><tr><td>24H学生工/退休兼职</td><td>每月25日</td><td>上月16日~本月15日</td></tr></table>';
+            ref4.innerHTML = '<h3>💰 发薪日速查</h3><table><tr><th>类型</th><th>发薪日</th><th>周期</th></tr><tr><td>40H</td><td>每月25日</td><td>当月1日~月底</td></tr><tr><td>28H</td><td>每月25日</td><td>上月16日~当月15日</td></tr><tr><td>24H社会兼职</td><td>10日+25日</td><td>分两次</td></tr></table>';
             sec.appendChild(ref4);
         }
         if (h2text.indexOf('常用工资代码') !== -1) {
             var ref5 = document.createElement('div'); ref5.className = 'ref-box guide';
-            ref5.innerHTML = '<h3>🏷️ Paycode工时归属判断</h3><table><tr><th>代码</th><th>属于本商场？</th><th>说明</th></tr><tr><td>Business Travel</td><td>✅ 是</td><td>在外培训/开会/市调</td></tr><tr><td>Meeting Hours</td><td>✅ 是</td><td>在自己商场的会议</td></tr><tr><td>Training Hours</td><td>✅ 是</td><td>年度计划内的培训</td></tr><tr><td>Rebuild Hours</td><td>✅ 是</td><td>在自己店进行改造</td></tr><tr><td>Project Hours</td><td>❌ 否</td><td>支援别的店</td></tr></table>';
+            ref5.innerHTML = '<h3>🏷️ Paycode归属判断</h3><table><tr><th>代码</th><th>本商场？</th></tr><tr><td>Business Travel</td><td>✅</td></tr><tr><td>Meeting Hours</td><td>✅</td></tr><tr><td>Training Hours</td><td>✅</td></tr><tr><td>Rebuild</td><td>✅</td></tr><tr><td>Project Hours</td><td>❌</td></tr></table>';
             sec.appendChild(ref5);
         }
         if (h2text.indexOf('宜家公司年假') !== -1) {
             var ref6 = document.createElement('div'); ref6.className = 'ref-box guide';
-            ref6.innerHTML = '<h3>🏖️ 年假对照表</h3><table><tr><th colspan="2">公司年假（按宜家服务年限N）</th></tr><tr><td>N<5年</td><td>15天</td></tr><tr><td>5≤N<10</td><td>17天</td></tr><tr><td>10≤N<15</td><td>19天</td></tr><tr><td>15≤N<20</td><td>21天</td></tr><tr><td>20≤N<25</td><td>23天</td></tr><tr><td>N≥25</td><td>25天</td></tr></table><table style="margin-top:10px;"><tr><th colspan="2">法定年假（按社会工龄N）</th></tr><tr><td>N<10年</td><td>5天</td></tr><tr><td>10≤N<20</td><td>10天</td></tr><tr><td>N≥20</td><td>15天</td></tr></table><p style="margin-top:8px;">💡 公司年假折算向上取整；法定年假折算向下取整</p>';
+            ref6.innerHTML = '<h3>🏖️ 年假对照表</h3><table><tr><th colspan="2">公司年假（宜家服务年限N）</th></tr><tr><td>N<5</td><td>15天</td></tr><tr><td>5≤N<10</td><td>17天</td></tr><tr><td>10≤N<15</td><td>19天</td></tr><tr><td>15≤N<20</td><td>21天</td></tr><tr><td>20≤N<25</td><td>23天</td></tr><tr><td>N≥25</td><td>25天</td></tr></table>';
             sec.appendChild(ref6);
         }
         if (h2text.indexOf('Staff Cost定义') !== -1) {
             var ref7 = document.createElement('div'); ref7.className = 'ref-box guide';
-            ref7.innerHTML = '<h3>📐 关键指标公式</h3><table><tr><th>指标</th><th>公式</th><th>说明</th></tr><tr><td>CPWH</td><td>Total Staff Cost / Worked Hour</td><td>每工时成本</td></tr><tr><td>生产率</td><td>Sales Volume (dm³) / Working Hour</td><td>按体积衡量</td></tr><tr><td>Staff Cost(Total)</td><td>Staff Cost + Other Staff Cost</td><td>总人员成本</td></tr></table>';
+            ref7.innerHTML = '<h3>📐 关键公式</h3><table><tr><th>指标</th><th>公式</th></tr><tr><td>CPWH</td><td>Total Staff Cost / Worked Hour</td></tr><tr><td>生产率</td><td>Sales Volume (dm³) / Working Hour</td></tr><tr><td>Staff Cost Total</td><td>Staff Cost + Other Staff Cost</td></tr></table>';
             sec.appendChild(ref7);
         }
     });
