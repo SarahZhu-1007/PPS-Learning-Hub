@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宜家PPS交接学习系统 v7</title>
+    <title>宜家PPS交接学习系统 v10</title>
     <style>
         :root {
             --primary-color: #0058a3;
@@ -15,7 +15,14 @@
             --mytime-color: #487ad8;
             --role-color: #6b3fa0;
             --guide-color: #c0392b;
-            --dept-blue: #0058a3;
+            --sop-color: #2e7d32;
+            --process-color: #0058a3;
+            --people-color: #007db7;
+            --yearly-color: #1a5276;
+            --quarterly-color: #117864;
+            --monthly-color: #b7950b;
+            --biweekly-color: #922b21;
+            --adhoc-color: #4a2350;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding: 20px; }
@@ -53,6 +60,11 @@
         .tag-mytime { background: var(--mytime-color); }
         .tag-role { background: var(--role-color); }
         .tag-guide { background: var(--guide-color); }
+        .tag-yearly { background: var(--yearly-color); }
+        .tag-quarterly { background: var(--quarterly-color); }
+        .tag-monthly { background: var(--monthly-color); }
+        .tag-biweekly { background: var(--biweekly-color); }
+        .tag-adhoc { background: var(--adhoc-color); }
         .note { font-size: 12px; color: #777; margin-top: 4px; display: block; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
@@ -64,6 +76,8 @@
         .btn-primary { background: var(--primary-color); color: white; }
         .btn-danger { background: #e74c3c; color: white; font-size: 12px; padding: 5px 10px; }
         .btn-secondary { background: #eee; color: #333; font-size: 12px; padding: 5px 10px; }
+        .btn-sop { background: var(--sop-color); color: white; }
+        .btn-outline { background: white; color: var(--sop-color); border: 2px solid var(--sop-color); }
         .actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .record-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
         .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -77,35 +91,316 @@
         .ref-box th, .ref-box td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
         .ref-box th { background: #e8eef8; font-weight: bold; }
         .ref-box p { font-size: 12px; margin: 5px 0; }
-        .ref-box ul { margin: 5px 0 5px 15px; }
-        .ref-box li { padding: 2px 0; border: none; cursor: default; }
         footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 12px; color: #aaa; text-align: center; }
-        @media (max-width: 600px) {
-            .container { padding: 15px; }
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full { grid-column: span 1; }
-            .tabs { flex-direction: column; }
-        }
+        @media (max-width: 600px) { .container { padding: 15px; } .form-grid { grid-template-columns: 1fr; } .form-group.full { grid-column: span 1; } .tabs { flex-direction: column; } }
+    </style>
+
+    <!-- ========== 部门对照表专用样式 ========== -->
+    <style>
+    .dept-intro { background: #f0f4ff; border: 1px solid #c8d8f8; border-radius: 8px; padding: 15px 20px; margin-bottom: 15px; }
+    .dept-intro p { font-size: 13px; color: #555; margin: 3px 0; }
+    .dept-table-container { background: #f8faff; border: 1px solid #d0e0f0; border-radius: 8px; padding: 20px; margin: 0 0 20px 0; }
+    .dept-table-container h3 { font-size: 15px; color: var(--mytime-color); margin-bottom: 5px; }
+    .dept-table-container .dept-subtitle { font-size: 12px; color: #888; margin-bottom: 15px; }
+    .dept-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .dept-table th { background: var(--primary-color); color: white; padding: 10px 12px; text-align: left; font-weight: bold; border: 1px solid var(--primary-color); }
+    .dept-table th small { font-weight: normal; opacity: 0.8; font-size: 10px; }
+    .dept-table td { border: 1px solid #dde7f5; padding: 8px 12px; vertical-align: middle; }
+    .dept-table tr:hover td { background: #eef5ff; }
+    .dept-table .ou-group-row td { background: #e8eef8; font-weight: bold; font-size: 14px; color: var(--primary-color); padding: 10px 12px; border-left: 4px solid var(--primary-color); border-bottom: 2px solid var(--primary-color); }
+    .dept-table .ou-group-row .ou-code-tag { font-size: 11px; color: #fff; background: var(--primary-color); padding: 1px 6px; border-radius: 3px; margin-left: 8px; font-weight: normal; }
+    .dept-table .ou-group-row .ou-label-tag { font-size: 11px; color: #999; font-weight: normal; }
+    .dept-table .col-ou { white-space: nowrap; color: #999; font-size: 12px; text-align: center; width: 7%; }
+    .dept-table .col-daily { font-weight: 600; color: #333; width: 21%; }
+    .dept-table .col-arrow { text-align: center; color: #bbb; font-size: 16px; width: 4%; }
+    .dept-table .col-mt { color: var(--primary-color); font-weight: 500; width: 24%; }
+    .dept-table .col-mt-dept { color: #555; width: 22%; }
+    .dept-table .col-full { font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; color: #888; width: 22%; }
+    .dept-table .warn-row td { background: #fff3e0; }
+    .dept-table .warn-row .col-daily, .dept-table .warn-row .col-mt { color: #e65100; }
+    .dept-table .warn-icon { color: #e65100; font-size: 12px; margin-left: 4px; }
+    .dept-warn-box { background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 6px; padding: 12px 15px; margin: 15px 0; }
+    .dept-warn-box h4 { font-size: 13px; color: #e65100; margin-bottom: 8px; }
+    .dept-warn-box p { font-size: 12px; color: #795548; margin: 5px 0; line-height: 1.7; }
+    .dept-warn-box p b { color: #e65100; }
+    .dept-checklist-box { margin-top: 20px; border-top: 2px dashed #d0e0f0; padding-top: 15px; }
+    .dept-checklist-box h4 { font-size: 14px; color: var(--mytime-color); margin-bottom: 10px; }
+    .dept-checklist-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+    .dept-checklist-item:last-child { border-bottom: none; }
+    .dept-checklist-item input[type="checkbox"] { margin-top: 3px; }
+    .dept-checklist-item label { font-weight: normal; font-size: 13px; cursor: pointer; flex: 1; }
+    .dept-checklist-item label .note-inline { font-size: 11px; color: #e65100; }
+    .dept-checklist-item label.completed { text-decoration: line-through; color: #999; }
+    .dept-progress-bar { width: 100%; background: #eee; border-radius: 10px; height: 10px; overflow: hidden; margin-top: 8px; margin-bottom: 5px; }
+    .dept-progress-fill { height: 100%; background: var(--mytime-color); width: 0%; transition: width 0.3s ease; border-radius: 10px; }
+    .dept-progress-text { font-size: 12px; color: #666; }
+    .dept-tip-box { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 12px 15px; margin-top: 15px; }
+    .dept-tip-box p { font-size: 12px; color: #555; margin: 3px 0; }
+    .dept-tip-box p b { color: #2e7d32; }
+    @media (max-width: 600px) { .dept-table { font-size: 11px; } .dept-table th, .dept-table td { padding: 5px 6px; } .dept-table .col-full { display: none; } }
+    </style>
+
+    <!-- ========== SOP编辑器专用样式 ========== -->
+    <style>
+    .sop-layout { display: flex; gap: 20px; min-height: 600px; }
+    .sop-sidebar { width: 240px; flex-shrink: 0; }
+    .sop-main { flex: 1; min-width: 0; }
+    .sop-list { background: #f8faf8; border: 1px solid #d0e0d0; border-radius: 8px; overflow: hidden; }
+    .sop-list-header { background: var(--sop-color); color: white; padding: 10px 15px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .sop-item { padding: 10px 15px; border-bottom: 1px solid #e0eee0; cursor: pointer; transition: background 0.2s; display: flex; align-items: flex-start; gap: 8px; }
+    .sop-item:hover { background: #e8f5e9; }
+    .sop-item.active { background: #c8e6c9; border-left: 3px solid var(--sop-color); }
+    .sop-item-title { font-size: 13px; font-weight: 600; color: #333; flex: 1; }
+    .sop-item.active .sop-item-title { color: var(--sop-color); }
+    .sop-item-meta { font-size: 11px; color: #999; margin-top: 2px; }
+    .sop-item-status { font-size: 10px; padding: 1px 5px; border-radius: 3px; color: white; white-space: nowrap; }
+    .sop-status-draft { background: #999; }
+    .sop-status-review { background: #f39c12; }
+    .sop-status-done { background: #27ae60; }
+    .sop-add-btn { width: 100%; padding: 10px; border: none; background: #e8f5e9; color: var(--sop-color); border: 1px dashed var(--sop-color); border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+    .sop-add-btn:hover { background: #c8e6c9; }
+    .sop-editor { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; }
+    .sop-editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid var(--sop-color); }
+    .sop-editor-title { font-size: 18px; font-weight: bold; color: var(--sop-color); }
+    .sop-editor-actions { display: flex; gap: 8px; }
+    .sop-field { margin-bottom: 15px; }
+    .sop-field-label { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 5px; display: block; }
+    .sop-field-label .required { color: #e74c3c; }
+    .sop-field input, .sop-field select, .sop-field textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .sop-field input:focus, .sop-field select:focus, .sop-field textarea:focus { outline: none; border-color: var(--sop-color); }
+    .sop-field textarea { resize: vertical; min-height: 60px; }
+    .sop-field-row { display: flex; gap: 15px; }
+    .sop-field-row .sop-field { flex: 1; }
+    .sop-step-list { margin: 10px 0; }
+    .sop-step { background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 10px; position: relative; }
+    .sop-step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .sop-step-num { background: var(--sop-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; }
+    .sop-step-title { font-weight: bold; font-size: 13px; color: #333; flex: 1; }
+    .sop-step-del { background: #e74c3c; color: white; border: none; border-radius: 4px; width: 22px; height: 22px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+    .sop-step-del:hover { opacity: 0.8; }
+    .sop-add-step { width: 100%; padding: 8px; border: 1px dashed var(--sop-color); background: #f8fff8; color: var(--sop-color); border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .sop-add-step:hover { background: #e8f5e9; }
+    .sop-checklist { background: white; border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; margin-top: 10px; }
+    .sop-checklist-title { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px; }
+    .sop-checklist-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .sop-checklist-item input[type="text"] { flex: 1; font-size: 12px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .sop-checklist-item .del-cb { background: #e74c3c; color: white; border: none; border-radius: 3px; width: 18px; height: 18px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+    .sop-exception-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    .sop-exception-table th { background: #fff3e0; padding: 6px 8px; text-align: left; border: 1px solid #ffe0b2; font-weight: bold; }
+    .sop-exception-table td { border: 1px solid #ffe0b2; padding: 4px 8px; }
+    .sop-exception-table input { width: 100%; border: none; padding: 2px 4px; font-size: 12px; background: transparent; }
+    .sop-exception-table input:focus { outline: 1px solid var(--sop-color); background: #f8fff8; border-radius: 3px; }
+    .sop-exception-add { margin-top: 5px; }
+    .sop-empty { text-align: center; padding: 40px 20px; color: #999; }
+    .sop-empty p { margin: 5px 0; }
+    .sop-tip-banner { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 10px 15px; margin-bottom: 15px; }
+    .sop-tip-banner p { font-size: 12px; color: #555; margin: 0; }
+    .sop-tip-banner p b { color: var(--sop-color); }
+    .sop-template-btn { background: #e3f2fd; color: var(--primary-color); border: 1px solid #90caf9; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .sop-template-btn:hover { background: #bbdefb; }
+    .sop-template-dropdown { display: none; position: absolute; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; min-width: 280px; }
+    .sop-template-dropdown.show { display: block; }
+    .sop-template-option { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .sop-template-option:hover { background: #e8f5e9; }
+    .sop-template-option:last-child { border-bottom: none; }
+    .sop-template-option .tpl-tag { font-size: 10px; padding: 1px 5px; border-radius: 3px; color: white; margin-left: 6px; }
+    @media (max-width: 700px) {
+        .sop-layout { flex-direction: column; }
+        .sop-sidebar { width: 100%; }
+        .sop-field-row { flex-direction: column; }
+    }
+    </style>
+
+    <!-- ========== Process × People 全景图专用样式 ========== -->
+    <style>
+    .pp-overview { margin-bottom: 30px; }
+    .pp-header-banner {
+        background: linear-gradient(135deg, var(--process-color), var(--people-color));
+        color: white; padding: 20px 25px; border-radius: 10px; text-align: center; margin-bottom: 20px;
+    }
+    .pp-header-banner h2 { font-size: 20px; margin: 0 0 8px 0; border: none; color: white; padding: 0; }
+    .pp-header-banner p { font-size: 14px; opacity: 0.9; margin: 0; }
+    .pp-dual-layout { display: flex; gap: 20px; margin-bottom: 20px; }
+    .pp-column { flex: 1; min-width: 0; }
+    .pp-column-header {
+        color: white; padding: 15px 20px; border-radius: 8px 8px 0 0; font-size: 16px; font-weight: bold;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .pp-column-header.process { background: var(--process-color); }
+    .pp-column-header.people { background: var(--people-color); }
+    .pp-column-header .pp-sub { font-size: 12px; font-weight: normal; opacity: 0.85; }
+    .pp-column-body {
+        border: 2px solid; border-top: none; border-radius: 0 0 8px 8px; padding: 15px; background: #fafcff;
+    }
+    .pp-column-body.process { border-color: var(--process-color); }
+    .pp-column-body.people { border-color: var(--people-color); }
+    .pp-module {
+        background: white; border-radius: 8px; padding: 12px 15px; margin-bottom: 12px;
+        border: 1px solid #e0e0e0; transition: box-shadow 0.2s;
+    }
+    .pp-module:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .pp-module:last-child { margin-bottom: 0; }
+    .pp-module-title {
+        font-size: 13px; font-weight: bold; margin-bottom: 8px; padding-bottom: 6px;
+        border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 6px;
+    }
+    .pp-module-title .pp-mod-num {
+        width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 11px; color: white; flex-shrink: 0;
+    }
+    .pp-column-body.process .pp-mod-num { background: var(--process-color); }
+    .pp-column-body.people .pp-mod-num { background: var(--people-color); }
+    .pp-module-list { list-style: none; padding: 0; margin: 0; }
+    .pp-module-list li {
+        padding: 4px 0; font-size: 12px; color: #555; display: flex; align-items: flex-start; gap: 6px;
+        border: none; cursor: default;
+    }
+    .pp-module-list li::before {
+        content: '\2022'; color: #bbb; font-weight: bold; flex-shrink: 0;
+    }
+    .pp-module-list li .pp-kw {
+        color: var(--primary-color); font-style: italic; font-size: 11px; margin-left: 4px;
+    }
+    .pp-module-list li .pp-kw-people { color: var(--people-color); }
+    .pp-converge-box {
+        background: linear-gradient(135deg, #e3f2fd, #e0f7fa); border: 2px solid var(--primary-color);
+        border-radius: 10px; padding: 20px; text-align: center; margin-top: 20px;
+    }
+    .pp-converge-box h3 { font-size: 16px; color: var(--primary-color); margin-bottom: 8px; }
+    .pp-converge-box p { font-size: 14px; color: #444; font-weight: bold; }
+    .pp-interview-section { margin-top: 30px; }
+    .pp-interview-section h3 {
+        font-size: 16px; color: var(--primary-color); margin-bottom: 12px;
+        padding-left: 10px; border-left: 4px solid var(--secondary-color);
+    }
+    .pp-elevator-pitch {
+        background: #fffde7; border: 1px solid #ffe082; border-radius: 8px; padding: 15px 20px; margin-bottom: 15px;
+    }
+    .pp-elevator-pitch .pp-label { font-size: 12px; font-weight: bold; color: #f57f17; margin-bottom: 6px; }
+    .pp-elevator-pitch p { font-size: 13px; color: #444; line-height: 1.8; }
+    .pp-qa-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    .pp-qa-table th { background: var(--primary-color); color: white; padding: 8px 10px; text-align: left; }
+    .pp-qa-table td { border: 1px solid #e0e0e0; padding: 8px 10px; vertical-align: top; }
+    .pp-qa-table tr:nth-child(even) td { background: #f8fbff; }
+    .pp-qa-table .pp-q { font-weight: bold; color: var(--primary-color); width: 35%; }
+    @media (max-width: 700px) {
+        .pp-dual-layout { flex-direction: column; }
+        .pp-column { width: 100%; }
+        .pp-qa-table .pp-q { width: auto; display: block; }
+    }
+    </style>
+
+    <!-- ========== 周期工作时间轴专用样式 ========== -->
+    <style>
+    .cycle-intro {
+        background: linear-gradient(135deg, var(--yearly-color), var(--adhoc-color));
+        color: white; padding: 20px 25px; border-radius: 10px; margin-bottom: 20px;
+    }
+    .cycle-intro h2 { color: white; border: none; padding: 0; font-size: 20px; margin-bottom: 8px; }
+    .cycle-intro p { font-size: 14px; opacity: 0.9; margin: 0; }
+    .cycle-progress-bar {
+        width: 100%; background: #eee; border-radius: 10px; height: 14px; overflow: hidden; margin-bottom: 5px;
+    }
+    .cycle-progress-fill {
+        height: 100%; background: linear-gradient(90deg, var(--yearly-color), var(--quarterly-color), var(--monthly-color), var(--biweekly-color), var(--adhoc-color));
+        width: 0%; transition: width 0.3s ease; border-radius: 10px;
+    }
+    .cycle-stats { font-size: 14px; color: #666; margin-bottom: 15px; }
+    .cycle-section {
+        border-radius: 10px; padding: 0; margin-bottom: 20px; overflow: hidden;
+        border: 2px solid;
+    }
+    .cycle-section.yearly { border-color: var(--yearly-color); }
+    .cycle-section.quarterly { border-color: var(--quarterly-color); }
+    .cycle-section.monthly { border-color: var(--monthly-color); }
+    .cycle-section.biweekly { border-color: var(--biweekly-color); }
+    .cycle-section.adhoc { border-color: var(--adhoc-color); }
+    .cycle-section-header {
+        color: white; padding: 12px 20px; font-size: 16px; font-weight: bold;
+        display: flex; align-items: center; gap: 10px; cursor: pointer;
+    }
+    .cycle-section-header.yearly { background: var(--yearly-color); }
+    .cycle-section-header.quarterly { background: var(--quarterly-color); }
+    .cycle-section-header.monthly { background: var(--monthly-color); }
+    .cycle-section-header.biweekly { background: var(--biweekly-color); }
+    .cycle-section-header.adhoc { background: var(--adhoc-color); }
+    .cycle-section-header .cycle-count {
+        margin-left: auto; font-size: 12px; opacity: 0.85; font-weight: normal;
+    }
+    .cycle-section-header .cycle-toggle {
+        font-size: 18px; transition: transform 0.3s;
+    }
+    .cycle-section.collapsed .cycle-toggle { transform: rotate(-90deg); }
+    .cycle-section-body { padding: 15px 20px; background: #fafcff; }
+    .cycle-section.collapsed .cycle-section-body { display: none; }
+    .cycle-item {
+        display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.2s;
+    }
+    .cycle-item:hover { background: #f8fbff; }
+    .cycle-item:last-child { border-bottom: none; }
+    .cycle-item.completed { background: #f0f9eb; }
+    .cycle-item.completed .cycle-item-text { text-decoration: line-through; color: #999; }
+    .cycle-item input[type="checkbox"] { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; }
+    .cycle-item-content { flex: 1; }
+    .cycle-item-text { font-size: 14px; color: #333; font-weight: 500; }
+    .cycle-item-detail {
+        font-size: 12px; color: #666; margin-top: 4px; line-height: 1.7;
+        white-space: pre-wrap;
+    }
+    .cycle-item-detail .cycle-keyword {
+        color: var(--primary-color); font-weight: 600;
+    }
+    .cycle-item-detail .cycle-path {
+        font-family: 'Consolas', 'Monaco', monospace; font-size: 11px; color: #888;
+        background: #f5f5f5; padding: 2px 6px; border-radius: 4px; word-break: break-all;
+    }
+    .cycle-item-detail .cycle-contact {
+        font-size: 11px; color: #e65100; font-weight: 500;
+    }
+    .cycle-priority-badge {
+        font-size: 10px; padding: 2px 8px; border-radius: 4px; color: white; font-weight: bold; white-space: nowrap; flex-shrink: 0;
+    }
+    .cycle-priority-high { background: #e74c3c; }
+    .cycle-priority-mid { background: #f39c12; }
+    .cycle-priority-low { background: #27ae60; }
+    .cycle-tip-banner {
+        background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px;
+    }
+    .cycle-tip-banner p { font-size: 12px; color: #795548; margin: 3px 0; line-height: 1.7; }
+    .cycle-tip-banner p b { color: #e65100; }
+    .cycle-critical-box {
+        background: #ffebee; border: 2px solid #ef5350; border-radius: 10px; padding: 15px 20px; margin: 20px 0;
+    }
+    .cycle-critical-box h3 { color: #c62828; font-size: 15px; margin-bottom: 10px; }
+    .cycle-critical-box p { font-size: 13px; color: #333; margin: 5px 0; line-height: 1.7; }
+    .cycle-critical-box p b { color: #c62828; }
+    @media (max-width: 600px) {
+        .cycle-item-detail .cycle-path { font-size: 10px; }
+    }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🏠 宜家PPS交接学习系统 v7</h1>
+        <h1>🏠 宜家PPS交接学习系统 v10</h1>
         <div class="tabs">
-            <button class="tab-btn active" data-tab="checklist">📋 交接学习打卡</button>
-            <button class="tab-btn" data-tab="deptmap">🏢 部门名称对照表</button>
-            <button class="tab-btn" data-tab="role">👤 岗位职责与能力</button>
-            <button class="tab-btn" data-tab="guide">📖 白皮书知识体系</button>
-            <button class="tab-btn" data-tab="journal">📝 每日学习记录</button>
+            <button class="tab-btn active" data-tab="checklist">📋 交接打卡</button>
+            <button class="tab-btn" data-tab="deptmap">🏢 部门对照</button>
+            <button class="tab-btn" data-tab="sop">📝 SOP编辑器</button>
+            <button class="tab-btn" data-tab="role">👤 岗位职责</button>
+            <button class="tab-btn" data-tab="overview">🧩 全景图</button>
+            <button class="tab-btn" data-tab="guide">📖 白皮书</button>
+            <button class="tab-btn" data-tab="cycle">🗓️ 周期工作</button>
+            <button class="tab-btn" data-tab="journal">📔 学习日记</button>
         </div>
     </header>
 
     <!-- ========== 打卡清单 ========== -->
     <div id="checklist" class="tab-content active">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="🔍 搜索打卡项（如：排班、考勤、加班、My Time...）">
+            <input type="text" id="search-input" placeholder="🔍 搜索打卡项...">
             <select id="filter-section"><option value="">全部模块</option></select>
             <span class="search-count" id="search-count"></span>
         </div>
@@ -114,17 +409,214 @@
         <main id="checklist-container"></main>
     </div>
 
-    <!-- ========== 部门名称对照表 ========== -->
+    <!-- ========== 部门对照表 ========== -->
     <div id="deptmap" class="tab-content">
         <div class="search-box">
-            <input type="text" id="dept-search" placeholder="🔍 搜索部门名称（如：Sales、Kitchen、Management、Recovery...）">
+            <input type="text" id="dept-search" placeholder="🔍 搜索部门名称...">
             <span class="search-count" id="dept-search-count"></span>
         </div>
         <div id="dept-table-wrapper"></div>
     </div>
 
+    <!-- ========== SOP编辑器 ========== -->
+    <div id="sop" class="tab-content">
+        <div class="sop-tip-banner">
+            <p><b>💡 SOP撰写原则：</b>写动作不写感受 · 按时间顺序 · 截图标注 · 写明前置条件 · 记录异常处理 · 用自己语言写</p>
+        </div>
+        <div class="sop-layout">
+            <div class="sop-sidebar">
+                <div class="sop-list">
+                    <div class="sop-list-header">
+                        <span>📄 SOP列表</span>
+                        <span id="sop-count" style="font-size:11px; opacity:0.8;">0份</span>
+                    </div>
+                    <div id="sop-list-body"></div>
+                </div>
+                <button class="sop-add-btn" id="sop-add-btn">➕ 新建SOP</button>
+                <div style="margin-top:10px; position:relative;">
+                    <button class="sop-template-btn" id="sop-template-btn" style="width:100%;">📋 从模板创建</button>
+                    <div class="sop-template-dropdown" id="sop-template-dropdown"></div>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="btn btn-secondary" id="sop-export-btn" style="width:100%; margin-bottom:5px;">📥 导出全部SOP</button>
+                    <button class="btn btn-secondary" id="sop-import-btn" style="width:100%;">📤 导入SOP</button>
+                    <input type="file" id="sop-import-file" accept=".json" style="display:none">
+                </div>
+            </div>
+            <div class="sop-main">
+                <div id="sop-editor-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 岗位职责 ========== -->
     <div id="role" class="tab-content"><div id="role-container"></div></div>
+
+    <!-- ========== Process × People 全景图 ========== -->
+    <div id="overview" class="tab-content">
+        <div class="pp-overview">
+            <div class="pp-header-banner">
+                <h2>🧩 PPS岗位全景图</h2>
+                <p>Process（流程与系统） × People（人与关系）双维框架 — 面试表达专用</p>
+            </div>
+            <div class="pp-dual-layout">
+                <div class="pp-column">
+                    <div class="pp-column-header process"><span>⚙️ PROCESS（流程与系统）</span><span class="pp-sub">——"把事情做对"</span></div>
+                    <div class="pp-column-body process">
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">1</span>预算与规划流程</div>
+                            <ul class="pp-module-list">
+                                <li>WH预算拆解：年度工时预算→各部门、各周 <span class="pp-kw">"我不是来花钱的，是来守预算的"</span></li>
+                                <li>HC计算与校验：1856H / 1560H / 1040H <span class="pp-kw">"三组数字我能背"</span></li>
+                                <li>合同结构评估：全职:兼职比例 <span class="pp-kw">"不只排班，还看结构"</span></li>
+                                <li>业务驱动对齐：排班跟随客流/销售预测 <span class="pp-kw">"跟着业务预测走"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">2</span>排班操作流程</div>
+                            <ul class="pp-module-list">
+                                <li>My Time三种排班方式 <span class="pp-kw">"三种方式我都会用"</span></li>
+                                <li>排班规则合规：间隔≥11H、连续≤6天 <span class="pp-kw">"合规是底线"</span></li>
+                                <li>休息时间规则（4档） <span class="pp-kw">"4档规则烂熟于心"</span></li>
+                                <li>排班修改管控：员工打卡后不改排班 <span class="pp-kw">"知道什么时候能动"</span></li>
+                                <li>出差/项目工时录入与归属判断 <span class="pp-kw">"Project Hour不属于本商场"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">3</span>考勤与薪资流程</div>
+                            <ul class="pp-module-list">
+                                <li>批考勤审批：逐日检查→异常处理→批量审批 <span class="pp-kw">"五个代码一眼看出含义"</span></li>
+                                <li>6种异常处理SOP <span class="pp-kw">"6种异常都有SOP"</span></li>
+                                <li>加班审批：企微审批→My Time录入 <span class="pp-kw">"所有加班必须提前审批"</span></li>
+                                <li>Sign off + Payroll Lock → Historical Edit <span class="pp-kw">"锁定后要改走历史编辑"</span></li>
+                                <li>薪资数据对接：工时汇总→差异核对→提交 <span class="pp-kw">"数据出问题第一个找我"</span></li>
+                                <li>异动员工处理：离职/调转的考勤收尾 <span class="pp-kw">"人走了工时不能错"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">4</span>合规与风控流程</div>
+                            <ul class="pp-module-list">
+                                <li>工时制度执行，月加班≤36H <span class="pp-kw">"先看审批文件"</span></li>
+                                <li>法定节假日11天，加班300% <span class="pp-kw">"看日历不看调休"</span></li>
+                                <li>最低工资核对 <span class="pp-kw">"兼职时薪不能低于底线"</span></li>
+                                <li>综合工时季度500H检查 <span class="pp-kw">"500H红线季度跟踪"</span></li>
+                                <li>Paycode归属判断 <span class="pp-kw">"归属分得清"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">5</span>系统与数据流程</div>
+                            <ul class="pp-module-list">
+                                <li>My Time全模块操作 <span class="pp-kw">"My Time是我的主战场"</span></li>
+                                <li>Kronos签核 / 历史编辑 / Payroll Lock <span class="pp-kw">"Kronos配合My Time"</span></li>
+                                <li>Global View：HR数据库 <span class="pp-kw">"GV是数据地基"</span></li>
+                                <li>系统取整逻辑（15min） <span class="pp-kw">"取整规则专门研究过"</span></li>
+                                <li>Delegate权限与数据分析改进 <span class="pp-kw">"会看数据说话"</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="pp-column">
+                    <div class="pp-column-header people"><span>👥 PEOPLE（人与关系）</span><span class="pp-sub">——"对的人在对的时间"</span></div>
+                    <div class="pp-column-body people">
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">1</span>员工体验与公平</div>
+                            <ul class="pp-module-list">
+                                <li>排班公平性 <span class="pp-kw pp-kw-people">"公平是核心价值"</span></li>
+                                <li>员工选择权（排班需求机制） <span class="pp-kw pp-kw-people">"员工有选择权"</span></li>
+                                <li>可用性管理 <span class="pp-kw pp-kw-people">"排班前先看可用性"</span></li>
+                                <li>年假管理与提醒 <span class="pp-kw pp-kw-people">"主动提醒谁快过期"</span></li>
+                                <li>怀孕/哺乳期保护 <span class="pp-kw pp-kw-people">"合规红线也是人文关怀"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">2</span>部门经理协作</div>
+                            <ul class="pp-module-list">
+                                <li>排班共创 <span class="pp-kw pp-kw-people">"排班是共创的"</span></li>
+                                <li>考勤异常确认 <span class="pp-kw pp-kw-people">"异常不自己判"</span></li>
+                                <li>加班审批 <span class="pp-kw pp-kw-people">"我盯流程，经理批合理性"</span></li>
+                                <li>优先事项对齐 <span class="pp-kw pp-kw-people">"和经理商量出来"</span></li>
+                                <li>超预算沟通 <span class="pp-kw pp-kw-people">"超预算不直接做"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">3</span>利益相关者管理</div>
+                            <ul class="pp-module-list">
+                                <li>P&C与Business Navigation纽带 <span class="pp-kw pp-kw-people">"排班和业务预测之间的桥"</span></li>
+                                <li>招聘审核 <span class="pp-kw pp-kw-people">"招人前我先审"</span></li>
+                                <li>Country P&C Team <span class="pp-kw pp-kw-people">"政策找他们"</span></li>
+                                <li>HRSS / ASK team / 工会 <span class="pp-kw pp-kw-people">"各司其职对接"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">4</span>员工发展与多技能</div>
+                            <ul class="pp-module-list">
+                                <li>多技能矩阵 <span class="pp-kw pp-kw-people">"不只排一个岗位的人"</span></li>
+                                <li>流程认知提升 <span class="pp-kw pp-kw-people">"会教人理解流程"</span></li>
+                                <li>数字化推动 <span class="pp-kw pp-kw-people">"使用者和推动者"</span></li>
+                            </ul>
+                        </div>
+                        <div class="pp-module">
+                            <div class="pp-module-title"><span class="pp-mod-num">5</span>员工生命周期支持</div>
+                            <ul class="pp-module-list">
+                                <li>新员工入职系统配置 <span class="pp-kw pp-kw-people">"新人来了第一时间配好"</span></li>
+                                <li>离职收尾 <span class="pp-kw pp-kw-people">"人走数据也要干净"</span></li>
+                                <li>调转工时拆分 <span class="pp-kw pp-kw-people">"不能算重也不能漏"</span></li>
+                                <li>兼职管理 <span class="pp-kw pp-kw-people">"兼职上限盯得比全职还紧"</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pp-converge-box">
+                <h3>🎯 Process × People 交汇点</h3>
+                <p>PPS不可替代的价值：让流程有温度，让人有规则。</p>
+            </div>
+            <div class="pp-interview-section">
+                <h3>🎤 面试表达模板</h3>
+                <div class="pp-elevator-pitch">
+                    <div class="pp-label">⏱️ 30秒电梯演讲版</div>
+                    <p>"PPS可以拆成两个维度看：<b>Process</b>层面，我负责从预算拆解→排班→考勤审批→Sign off→薪资数据对接的完整链路，确保系统跑通、数据准确、工时合规；<b>People</b>层面，我确保排班公平、员工有选择权、部门经理有参与感。简单说，<b>Process是把事做对，People是对的人在对的时间做对的事。</b>"</p>
+                </div>
+                <div class="pp-elevator-pitch">
+                    <div class="pp-label">📝 2分钟深度版</div>
+                    <p>"PPS的工作可以从Process和People两个维度理解。<b>Process</b>，核心是'工时→考勤→薪资'价值链——从WH预算拆解、HC计算，到每周排班发布，到每日考勤异常处理，再到每月Sign off和Payroll Lock、薪资数据对接。My Time做排班考勤，Kronos做签核锁定，Global View做HR数据。我的角色是确保这条链路不停、不错、不违规。<b>People</b>，核心是'公平与体验'——排班不是填格子，员工有选择权、怀孕哺乳期不排晚班、年假主动提醒。同时我和10个OU的部门经理协作，排班他们确认了我才发布，加班他们审批了我才录入。两个维度交汇的地方，就是PPS最大的价值：<b>让流程有温度，让人有规则。</b>"</p>
+                </div>
+                <h3 style="margin-top:20px;">💬 面试Q&A对照表</h3>
+                <table class="pp-qa-table">
+                    <tr><th style="width:35%;">面试官可能问</th><th>用 Process × People 回答</th></tr>
+                    <tr><td class="pp-q">"PPS最重要的能力是什么？"</td><td>Process层面是系统操作和合规意识，People层面是沟通和影响力——光会操作系统不够，还要能让经理和员工理解为什么要这样做。</td></tr>
+                    <tr><td class="pp-q">"排班和考勤你怎么看待？"</td><td>排班是Process（系统操作+规则合规）也是People（公平+员工选择）；考勤是Process（数据准确+Sign off）也是People（异常背后是人的问题，要核实不能擅断）。</td></tr>
+                    <tr><td class="pp-q">"你怎么处理和部门经理的分歧？"</td><td>Process层面用数据说话——预算差异、合规红线；People层面先倾听需求再解释约束——"我理解你的业务压力，但工时制度不能破"。</td></tr>
+                    <tr><td class="pp-q">"PPS和普通HR有什么不同？"</td><td>普通HR偏People（招聘/员工关系/培训），PPS是Process和People的交叉岗——既懂系统数据和合规流程，又懂排班公平和部门协作。这个交叉点是PPS不可替代的价值。</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div id="guide" class="tab-content"><div id="guide-container"></div></div>
+
+    <!-- ========== 周期工作时间轴 ========== -->
+    <div id="cycle" class="tab-content">
+        <div class="cycle-intro">
+            <h2>🗓️ PPS周期工作时间轴</h2>
+            <p>来源：Trista Su 交接文档 | 按年度 / 季度 / 月度 / 半月度 / 不定期五个层级整理</p>
+        </div>
+        <div class="cycle-stats">掌握进度: <span id="cycle-progress-text">0/0</span></div>
+        <div class="cycle-progress-bar"><div id="cycle-progress-fill" class="cycle-progress-fill"></div></div>
+
+        <div class="cycle-tip-banner">
+            <p><b>📌 使用说明：</b>以下内容来自 Trista 的交接文档，包含她在实际工作中总结的所有周期性任务。点击每条可打勾标记已掌握。折叠/展开按钮可收起已熟悉的板块。</p>
+            <p><b>⚠️ 特别注意：</b>Trista 标注的"最要紧的两件事"——发布班表和Sign off，是每周/每半月度的核心工作，务必优先掌握。</p>
+        </div>
+
+        <div class="cycle-critical-box">
+            <h3>🔴 最要紧的两件事（Trista 原话）</h3>
+            <p><b>1. 发布班表：</b>每周三上午十点发布班表。Step1: 选部门 → Step2: 选日期 → Step3: 选发布状态。PPS第一次发布之后，经理才可以自由编辑和发布。</p>
+            <p><b>2. Sign off：</b>提前2-3天提醒经理 → 检查SSG、Leo、Rachel、Kevin的考勤异常 → 确保无异常后提醒店长审批工时 → 导出Payfile → 确保所有"approval required"变成已批准 → 导出最终Payfile保存作为记录凭证。</p>
+        </div>
+
+        <div id="cycle-container"></div>
+    </div>
 
     <div id="journal" class="tab-content">
         <form id="journal-form" class="form-grid">
@@ -139,192 +631,73 @@
                     <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="岗位职责"> 岗位职责</label>
                     <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="白皮书"> 白皮书</label>
                     <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="部门对照"> 部门对照</label>
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="SOP撰写"> SOP撰写</label>
                     <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="合规学习"> 合规学习</label>
-                    <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="流程梳理"> 流程梳理</label>
                     <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="异常处理"> 异常处理</label>
-                    <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="问题困惑"> 问题困惑</label>
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="全景图"> 全景图</label>
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="j-tag" value="周期工作"> 周期工作</label>
                 </div>
             </div>
             <div class="form-group full"><label>今日学习内容</label><textarea id="j-content" placeholder="今天学到了什么？" required></textarea></div>
-            <div class="form-group"><label>涉及系统/模块</label><input type="text" id="j-system" placeholder="如：My Time排班、工时分配、HC计算、部门对照"></div>
+            <div class="form-group"><label>涉及系统/模块</label><input type="text" id="j-system" placeholder="如：My Time排班、SOP撰写"></div>
             <div class="form-group"><label>遗留问题/明天计划</label><input type="text" id="j-tomorrow" placeholder="需要找谁确认？明天优先做什么？"></div>
             <div class="form-group full" style="align-items:flex-end;"><button type="submit" class="btn btn-primary">💾 保存今日记录</button></div>
         </form>
         <div class="actions">
-            <button class="btn btn-secondary" id="export-btn">📥 导出备份 (JSON)</button>
-            <button class="btn btn-secondary" id="import-btn">📤 导入备份</button>
+            <button class="btn btn-secondary" id="export-btn">📥 导出日记备份</button>
+            <button class="btn btn-secondary" id="import-btn">📤 导入日记</button>
             <input type="file" id="import-file" accept=".json" style="display:none">
         </div>
         <div id="journal-list"></div>
     </div>
 
-    <footer>数据保存在本地浏览器 (LocalStorage) | 建议定期导出备份<br>PPS岗位价值：懂薪酬数据的HR，未来转C&B/HRIS/HRBP更有底气</footer>
+    <footer>数据保存在本地浏览器 (LocalStorage) | 建议定期导出备份<br>PPS岗位价值：懂薪酬数据的HR，未来转C&amp;B/HRIS/HRBP更有底气</footer>
 </div>
 
-<style>
-/* ========== 部门对照表专用样式 ========== */
-.dept-intro {
-    background: #f0f4ff; border: 1px solid #c8d8f8; border-radius: 8px;
-    padding: 15px 20px; margin-bottom: 15px;
-}
-.dept-intro p { font-size: 13px; color: #555; margin: 3px 0; }
-
-.dept-table-container {
-    background: #f8faff; border: 1px solid #d0e0f0; border-radius: 8px;
-    padding: 20px; margin: 0 0 20px 0;
-}
-.dept-table-container h3 {
-    font-size: 15px; color: var(--mytime-color); margin-bottom: 5px;
-}
-.dept-table-container .dept-subtitle {
-    font-size: 12px; color: #888; margin-bottom: 15px;
-}
-
-.dept-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
-}
-.dept-table th {
-    background: var(--dept-blue); color: white;
-    padding: 10px 12px; text-align: left; font-weight: bold;
-    position: sticky; top: 0; z-index: 2;
-    border: 1px solid var(--dept-blue);
-}
-.dept-table th small { font-weight: normal; opacity: 0.8; font-size: 10px; }
-.dept-table td {
-    border: 1px solid #dde7f5; padding: 8px 12px;
-    vertical-align: middle;
-}
-.dept-table tr:hover td { background: #eef5ff; }
-
-/* OU分组行 */
-.dept-table .ou-group-row td {
-    background: #e8eef8; font-weight: bold; font-size: 14px;
-    color: var(--dept-blue); padding: 10px 12px;
-    border-left: 4px solid var(--dept-blue);
-    border-bottom: 2px solid var(--dept-blue);
-}
-.dept-table .ou-group-row .ou-code-tag {
-    font-size: 11px; color: #fff; background: var(--dept-blue);
-    padding: 1px 6px; border-radius: 3px; margin-left: 8px; font-weight: normal;
-}
-.dept-table .ou-group-row .ou-label-tag {
-    font-size: 11px; color: #999; font-weight: normal;
-}
-
-/* 各列样式 */
-.dept-table .col-ou { white-space: nowrap; color: #999; font-size: 12px; text-align: center; width: 7%; }
-.dept-table .col-daily { font-weight: 600; color: #333; width: 21%; }
-.dept-table .col-arrow { text-align: center; color: #bbb; font-size: 16px; width: 4%; }
-.dept-table .col-mt { color: var(--dept-blue); font-weight: 500; width: 24%; }
-.dept-table .col-mt-dept { color: #555; width: 22%; }
-.dept-table .col-full {
-    font-family: 'Consolas', 'Monaco', monospace; font-size: 11px;
-    color: #888; width: 22%;
-}
-
-/* 警告行 */
-.dept-table .warn-row td { background: #fff3e0; }
-.dept-table .warn-row .col-daily,
-.dept-table .warn-row .col-mt { color: #e65100; }
-.dept-table .warn-icon { color: #e65100; font-size: 12px; margin-left: 4px; }
-
-/* 警告提示框 */
-.dept-warn-box {
-    background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 6px;
-    padding: 12px 15px; margin: 15px 0;
-}
-.dept-warn-box h4 { font-size: 13px; color: #e65100; margin-bottom: 8px; }
-.dept-warn-box p { font-size: 12px; color: #795548; margin: 5px 0; line-height: 1.7; }
-.dept-warn-box p b { color: #e65100; }
-
-/* 打卡区域 */
-.dept-checklist-box {
-    margin-top: 20px; border-top: 2px dashed #d0e0f0; padding-top: 15px;
-}
-.dept-checklist-box h4 {
-    font-size: 14px; color: var(--mytime-color); margin-bottom: 10px;
-}
-.dept-checklist-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 8px 0; border-bottom: 1px solid #f0f0f0;
-}
-.dept-checklist-item:last-child { border-bottom: none; }
-.dept-checklist-item input[type="checkbox"] { margin-top: 3px; }
-.dept-checklist-item label {
-    font-weight: normal; font-size: 13px; cursor: pointer; flex: 1;
-}
-.dept-checklist-item label .note-inline {
-    font-size: 11px; color: #e65100;
-}
-.dept-checklist-item label.completed { text-decoration: line-through; color: #999; }
-.dept-progress-bar {
-    width: 100%; background: #eee; border-radius: 10px;
-    height: 10px; overflow: hidden; margin-top: 8px; margin-bottom: 5px;
-}
-.dept-progress-fill {
-    height: 100%; background: var(--mytime-color);
-    width: 0%; transition: width 0.3s ease; border-radius: 10px;
-}
-.dept-progress-text { font-size: 12px; color: #666; }
-
-/* 技巧提示 */
-.dept-tip-box {
-    background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px;
-    padding: 12px 15px; margin-top: 15px;
-}
-.dept-tip-box p { font-size: 12px; color: #555; margin: 3px 0; }
-.dept-tip-box p b { color: #2e7d32; }
-
-@media (max-width: 600px) {
-    .dept-table { font-size: 11px; }
-    .dept-table th, .dept-table td { padding: 5px 6px; }
-    .dept-table .col-full { display: none; }
-    .dept-table .col-arrow { width: 8%; }
-}
-</style>
-
 <script>
-var CHECKLIST_KEY = 'pps_checklist_v7';
-var JOURNAL_KEY = 'pps_journal_v7';
+var CHECKLIST_KEY = 'pps_checklist_v10';
+var JOURNAL_KEY = 'pps_journal_v10';
+var SOP_KEY = 'pps_sop_v10';
+var CYCLE_KEY = 'pps_cycle_v10';
 
 /* ================= 部门对照表数据 ================= */
 var deptMappingData = [
     { ouName: "Com-In", ouCode: "1016", ouLabel: "沟通陈列部", depts: [
-        { daily: "Com-In",                  mtDiv: "Management",                       mtDept: "Management" },
-        { daily: "Graphic Communication",   mtDiv: "Communication& Interior Design",  mtDept: "Graphic Design" },
-        { daily: "Interior Design",          mtDiv: "Communication& Interior Design",  mtDept: "Interior Design" },
-        { daily: "Visual Merchandise/Act.", mtDiv: "Communication& Interior Design",  mtDept: "Visual Merchandising" }
+        { daily: "Com-In", mtDiv: "Management", mtDept: "Management" },
+        { daily: "Graphic Communication", mtDiv: "Communication& Interior Design", mtDept: "Graphic Design" },
+        { daily: "Interior Design", mtDiv: "Communication& Interior Design", mtDept: "Interior Design" },
+        { daily: "Visual Merchandise/Act.", mtDiv: "Communication& Interior Design", mtDept: "Visual Merchandising" }
     ]},
     { ouName: "Cust. Relations", ouCode: "1023", ouLabel: "客服关系部", depts: [
-        { daily: "Checkout Services",   mtDiv: "Customer Services", mtDept: "Cashline" },
-        { daily: "Customer Relations",  mtDiv: "Management",        mtDept: "Management" },
-        { daily: "Easy Buying",         mtDiv: "Customer Services", mtDept: "After Sales Administration" },
+        { daily: "Checkout Services", mtDiv: "Customer Services", mtDept: "Cashline" },
+        { daily: "Customer Relations", mtDiv: "Management", mtDept: "Management" },
+        { daily: "Easy Buying", mtDiv: "Customer Services", mtDept: "After Sales Administration" },
         { daily: "Shopping Experience", mtDiv: "Customer Services", mtDept: "Småland" }
     ]},
     { ouName: "Ful. Unit Ops.", ouCode: "1224", ouLabel: "物流运营部", depts: [
-        { daily: "Fulfilment Integration",    mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Integration" },
-        { daily: "Fulfilment Operations",     mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations" },
-        { daily: "Fulfilment Unit Operations",mtDiv: "Management",          mtDept: "Management" },
-        { daily: "Full Truckload& SSFA",      mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Picking" },
-        { daily: "Goods Receiving",           mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Receiving" },
-        { daily: "Goods Replenishment",        mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Replenishment" },
-        { daily: "Service Execution",          mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Service Execution" }
+        { daily: "Fulfilment Integration", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Integration" },
+        { daily: "Fulfilment Operations", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations" },
+        { daily: "Fulfilment Unit Operations", mtDiv: "Management", mtDept: "Management" },
+        { daily: "Full Truckload& SSFA", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Picking" },
+        { daily: "Goods Receiving", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Goods Receiving" },
+        { daily: "Goods Replenishment", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Replenishment" },
+        { daily: "Service Execution", mtDiv: "Customer Fulfilment", mtDept: "Fulfilment Operations_Service Execution" }
     ]},
     { ouName: "IKEA Food", ouCode: "1050", ouLabel: "餐饮部", depts: [
         { daily: "Commercial Restaurant", mtDiv: "IKEA Food", mtDept: "IKEA Food Restaurant" },
-        { daily: "Commercial SFM& Bistro",mtDiv: "IKEA Food", mtDept: "Bistro& Sweden Shop" },
-        { daily: "IKEA Food",              mtDiv: "IKEA Food", mtDept: "IKEA Food" },
-        { daily: "Kitchen Production",     mtDiv: "IKEA Food", mtDept: "Staff Restaurant" }
+        { daily: "Commercial SFM& Bistro", mtDiv: "IKEA Food", mtDept: "Bistro& Sweden Shop" },
+        { daily: "IKEA Food", mtDiv: "IKEA Food", mtDept: "IKEA Food" },
+        { daily: "Kitchen Production", mtDiv: "IKEA Food", mtDept: "Staff Restaurant" }
     ]},
     { ouName: "Local Marketing", ouCode: "1069", ouLabel: "本地市场部", depts: [
-        { daily: "IKEA Family",     mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与下方Local Marketing在My Time中显示完全相同（Marketing\\|Marketing），需通过子部门区分" },
-        { daily: "Local Marketing", mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与上方IKEA Family在My Time中显示完全相同（Marketing\\|Marketing），需通过子部门区分" }
+        { daily: "IKEA Family", mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与下方Local Marketing在My Time中显示相同" },
+        { daily: "Local Marketing", mtDiv: "Marketing", mtDept: "Marketing", warn: true, warnNote: "与上方IKEA Family在My Time中显示相同" }
     ]},
     { ouName: "Operations", ouCode: "1077", ouLabel: "运营部", depts: [
-        { daily: "Business Navigation",     mtDiv: "Business Navigation", mtDept: "Business Administration" },
-        { daily: "Recovery",                mtDiv: "Business Navigation", mtDept: "Product Quality& Recovery" },
-        { daily: "Safety& Security",        mtDiv: "Business Navigation", mtDept: "Safety& Security 2", warn: true, warnNote: "My Time中Dept名称带有数字\"2\"，注意不要遗漏" },
-        { daily: "Service Operations Team", mtDiv: "SO 3 Digital Hub",    mtDept: "Service Operation 3" }
+        { daily: "Business Navigation", mtDiv: "Business Navigation", mtDept: "Business Administration" },
+        { daily: "Recovery", mtDiv: "Business Navigation", mtDept: "Product Quality& Recovery" },
+        { daily: "Safety& Security", mtDiv: "Business Navigation", mtDept: "Safety& Security 2", warn: true, warnNote: "My Time中Dept名称带有数字2" },
+        { daily: "Service Operations Team", mtDiv: "SO 3 Digital Hub", mtDept: "Service Operation 3" }
     ]},
     { ouName: "People&Culture", ouCode: "1193", ouLabel: "人事文化部", depts: [
         { daily: "People& Culture", mtDiv: "People& Culture", mtDept: "People& Culture" }
@@ -333,44 +706,43 @@ var deptMappingData = [
         { daily: "Facility", mtDiv: "Facility Management", mtDept: "Facility Management" }
     ]},
     { ouName: "Sales", ouCode: "1094", ouLabel: "销售部", depts: [
-        { daily: "Children's& IKEA Family",     mtDiv: "Sales",      mtDept: "Children's IKEA" },
-        { daily: "Commercial Activity",           mtDiv: "Sales",      mtDept: "Activities" },
-        { daily: "Cooking& Eating",               mtDiv: "Sales",      mtDept: "Cooking& Eating" },
-        { daily: "Dining",                        mtDiv: "Sales",      mtDept: "Kitchen& Dining", warn: true, warnNote: "与下方Kitchen在My Time中都显示为 Sales\\|Kitchen& Dining，但实际是两个不同部门" },
-        { daily: "Home Decoration",               mtDiv: "Sales",      mtDept: "Decoration& Outdoor" },
-        { daily: "Home Furnishing Consultant",    mtDiv: "Sales",      mtDept: "Home Furnishing Consultants" },
-        { daily: "Home Organization",             mtDiv: "Sales",      mtDept: "Home Organisation& Second Storage" },
-        { daily: "Kitchen",                       mtDiv: "Sales",      mtDept: "Kitchen& Dining", warn: true, warnNote: "与上方Dining在My Time中都显示为 Sales\\|Kitchen& Dining，但实际是两个不同部门" },
-        { daily: "Lighting",                      mtDiv: "Sales",      mtDept: "Lighting" },
-        { daily: "Living Storage& Upholstery",    mtDiv: "Sales",      mtDept: "Living Room" },
-        { daily: "Sales",                         mtDiv: "Management", mtDept: "Management", warn: true, warnNote: "Sales下的管理岗，与多个OU的 Management\\|Management 显示相同" },
-        { daily: "Self Serve",                    mtDiv: "Sales",      mtDept: "Self Serve" },
-        { daily: "Sleeping& Storing",             mtDiv: "Sales",      mtDept: "Bedroom" },
-        { daily: "Textiles& Bathroom",            mtDiv: "Sales",      mtDept: "Textiles& Rugs" },
-        { daily: "Workspace",                     mtDiv: "Sales",      mtDept: "Work IKEA" }
+        { daily: "Children's& IKEA Family", mtDiv: "Sales", mtDept: "Children's IKEA" },
+        { daily: "Commercial Activity", mtDiv: "Sales", mtDept: "Activities" },
+        { daily: "Cooking& Eating", mtDiv: "Sales", mtDept: "Cooking& Eating" },
+        { daily: "Dining", mtDiv: "Sales", mtDept: "Kitchen& Dining", warn: true, warnNote: "与Kitchen显示相同" },
+        { daily: "Home Decoration", mtDiv: "Sales", mtDept: "Decoration& Outdoor" },
+        { daily: "Home Furnishing Consultant", mtDiv: "Sales", mtDept: "Home Furnishing Consultants" },
+        { daily: "Home Organization", mtDiv: "Sales", mtDept: "Home Organisation& Second Storage" },
+        { daily: "Kitchen", mtDiv: "Sales", mtDept: "Kitchen& Dining", warn: true, warnNote: "与Dining显示相同" },
+        { daily: "Lighting", mtDiv: "Sales", mtDept: "Lighting" },
+        { daily: "Living Storage& Upholstery", mtDiv: "Sales", mtDept: "Living Room" },
+        { daily: "Sales", mtDiv: "Management", mtDept: "Management", warn: true, warnNote: "多个OU共享Management名称" },
+        { daily: "Self Serve", mtDiv: "Sales", mtDept: "Self Serve" },
+        { daily: "Sleeping& Storing", mtDiv: "Sales", mtDept: "Bedroom" },
+        { daily: "Textiles& Bathroom", mtDiv: "Sales", mtDept: "Textiles& Rugs" },
+        { daily: "Workspace", mtDiv: "Sales", mtDept: "Work IKEA" }
     ]},
     { ouName: "Store Mgt.", ouCode: "1101", ouLabel: "店管理层", depts: [
-        { daily: "Store", mtDiv: "Management", mtDept: "Management", warn: true, warnNote: "与Com-In(1016)、CR(1023)、Sales(1094)、Ful(1224)的Management\\|Management显示完全相同，务必通过OU编号区分" }
+        { daily: "Store", mtDiv: "Management", mtDept: "Management", warn: true, warnNote: "多个OU共享Management名称，需OU编号区分" }
     ]}
 ];
 
-/* 部门熟记打卡项 */
 var deptChecklistItems = [
-    { id: "dm_commin",   text: "已熟记 Com-In（沟通陈列部）4个部门对照" },
-    { id: "dm_cr",       text: "已熟记 Cust. Relations（客服关系部）4个部门对照" },
-    { id: "dm_ful",      text: "已熟记 Ful. Unit Ops.（物流运营部）7个部门对照" },
-    { id: "dm_food",     text: "已熟记 IKEA Food（餐饮部）4个部门对照" },
-    { id: "dm_lm",       text: "已熟记 Local Marketing（本地市场部）2个部门对照", note: "⚠️ 两个部门My Time显示相同" },
-    { id: "dm_ops",      text: "已熟记 Operations（运营部）4个部门对照", note: "⚠️ Safety& Security 2 注意数字" },
-    { id: "dm_pc",       text: "已熟记 People&Culture（人事文化部）1个部门对照" },
-    { id: "dm_re",       text: "已熟记 Real Estate（物业部）1个部门对照" },
-    { id: "dm_sales",    text: "已熟记 Sales（销售部）15个部门对照", note: "⚠️ Dining与Kitchen显示相同" },
-    { id: "dm_store",    text: "已熟记 Store Mgt.（店管理层）1个部门对照", note: "⚠️ 多个OU共享Management名称" },
-    { id: "dm_warn1",    text: "已掌握：多个OU都有 Management\\|Management，必须通过OU编号区分" },
-    { id: "dm_warn2",    text: "已掌握：Local Marketing下两部门显示相同（Marketing\\|Marketing）" },
-    { id: "dm_warn3",    text: "已掌握：Sales下Dining和Kitchen都显示为 Sales\\|Kitchen& Dining" },
-    { id: "dm_warn4",    text: "已掌握：Safety& Security 在My Time中Dept显示为 Safety& Security 2（注意数字2）" },
-    { id: "dm_tip",      text: "已掌握操作技巧：排班/考勤/Sign off时先用OU编号定位，再找Div_Dep" }
+    { id: "dm_commin", text: "已熟记 Com-In（沟通陈列部）4个部门对照" },
+    { id: "dm_cr", text: "已熟记 Cust. Relations（客服关系部）4个部门对照" },
+    { id: "dm_ful", text: "已熟记 Ful. Unit Ops.（物流运营部）7个部门对照" },
+    { id: "dm_food", text: "已熟记 IKEA Food（餐饮部）4个部门对照" },
+    { id: "dm_lm", text: "已熟记 Local Marketing（本地市场部）2个部门对照", note: "⚠️ 两部门My Time显示相同" },
+    { id: "dm_ops", text: "已熟记 Operations（运营部）4个部门对照", note: "⚠️ Safety& Security 2" },
+    { id: "dm_pc", text: "已熟记 People&Culture（人事文化部）1个部门对照" },
+    { id: "dm_re", text: "已熟记 Real Estate（物业部）1个部门对照" },
+    { id: "dm_sales", text: "已熟记 Sales（销售部）15个部门对照", note: "⚠️ Dining与Kitchen显示相同" },
+    { id: "dm_store", text: "已熟记 Store Mgt.（店管理层）1个部门对照" },
+    { id: "dm_warn1", text: "已掌握：多个OU的Management|Management需OU编号区分" },
+    { id: "dm_warn2", text: "已掌握：Local Marketing下两部门显示相同" },
+    { id: "dm_warn3", text: "已掌握：Sales下Dining和Kitchen都显示为Sales|Kitchen& Dining" },
+    { id: "dm_warn4", text: "已掌握：Safety& Security在My Time中为Safety& Security 2" },
+    { id: "dm_tip", text: "已掌握：排班/考勤/Sign off时先用OU编号定位" }
 ];
 
 var checklistData = [
@@ -378,24 +750,24 @@ var checklistData = [
         { id: "sys1", text: "My Time排班模块：排班模板创建/自动分配/特定成员分配/智能模板外编辑", tag: "最高", tagType: "mytime", note: "3种排班方式都要会" },
         { id: "sys2", text: "My Time考勤模块：批考勤/异常考勤卡处理/加班审批/异动员工批复", tag: "最高", tagType: "mytime" },
         { id: "sys3", text: "My Time假期模块：年假/病假/事假录入及扣除优先顺序", tag: "最高", tagType: "mytime" },
-        { id: "sys4", text: "Kronos考勤系统：考勤签核/历史编辑/Payroll Lock机制", tag: "高", tagType: "high", note: "每次Sign off后锁定往期考勤卡，无人可修改已锁定卡片" },
-        { id: "sys5", text: "Global View (GV)：HR数据库，薪酬系统数据来源", tag: "高", tagType: "high", note: "GV=Global View，与Kronos(时间数据)配合输出薪酬" },
+        { id: "sys4", text: "Kronos考勤系统：考勤签核/历史编辑/Payroll Lock机制", tag: "高", tagType: "high", note: "每次Sign off后锁定往期考勤卡" },
+        { id: "sys5", text: "Global View (GV)：HR数据库，薪酬系统数据来源", tag: "高", tagType: "high" },
         { id: "sys6", text: "时间银行：工时存入/支取/加班转调休/跨周期结转", tag: "高", tagType: "high" },
         { id: "sys7", text: "薪金管理：考勤导出/工时汇总/异常薪资项检查", tag: "高", tagType: "mid" },
         { id: "sys8", text: "HRIS：合同类型与工时对应/员工状态变更", tag: "中", tagType: "low" }
     ]},
     { title: "二、My Time — 排班全流程", category: "mytime", items: [
         { id: "mt_pre", text: "排班前准备：确认员工清单/合同工时/可用性，创建排班表", tag: "排班", tagType: "mytime" },
-        { id: "mt_auto", text: "排班方式1：自动分配排班（系统按规则自动排班）", tag: "排班", tagType: "mytime" },
-        { id: "mt_manual", text: "排班方式2：分配给特定成员排班（手动指定人员）", tag: "排班", tagType: "mytime" },
-        { id: "mt_edit", text: "排班方式3：智能模板之外编辑排班（手动调整）", tag: "排班", tagType: "mytime" },
+        { id: "mt_auto", text: "排班方式1：自动分配排班", tag: "排班", tagType: "mytime" },
+        { id: "mt_manual", text: "排班方式2：分配给特定成员排班", tag: "排班", tagType: "mytime" },
+        { id: "mt_edit", text: "排班方式3：智能模板之外编辑排班", tag: "排班", tagType: "mytime" },
         { id: "mt_check", text: "排班后检查：确认排班是否完整覆盖所有员工和日期", tag: "排班", tagType: "mytime" },
         { id: "mt_modify", text: "排班后修改：如何修改已发布的排班", tag: "排班", tagType: "mytime", note: "⚠️ 员工打卡后不要改排班！" },
         { id: "mt_travel", text: "出差工时/项目工时录入操作", tag: "排班", tagType: "mytime" },
         { id: "mt_leave", text: "添加年假等假期操作（掌握输入年假两种方法）", tag: "排班", tagType: "mytime" }
     ]},
     { title: "三、My Time — 考勤全流程", category: "mytime", items: [
-        { id: "mt_batch", text: "批考勤步骤：打开考勤卡列表→逐日检查→批量审批", tag: "考勤", tagType: "mytime", note: "Regular=正常打卡；OT=批准加班；DT=未批准超出；PTO=假期；CP=出差/项目工时；Extra Pay=津贴" },
+        { id: "mt_batch", text: "批考勤步骤：打开考勤卡列表→逐日检查→批量审批", tag: "考勤", tagType: "mytime", note: "Regular=正常打卡；OT=批准加班；DT=未批准超出；PTO=假期；CP=出差/项目工时" },
         { id: "mt_fault", text: "异常处理：打卡故障怎么处理", tag: "异常", tagType: "mytime" },
         { id: "mt_multipunch", text: "异常处理：多打卡怎么处理", tag: "异常", tagType: "mytime" },
         { id: "mt_noschedule", text: "异常处理：未排班就打卡如何处理", tag: "异常", tagType: "mytime" },
@@ -414,7 +786,7 @@ var checklistData = [
     { title: "五、周期性任务日历", category: "schedule", items: [
         { id: "wk1", text: "每周：排班草稿→经理确认→最终发布（提前4周）", tag: "周常", tagType: "mid" },
         { id: "wk2", text: "每周：考勤异常审核截止 & 加班/换班审批截止", tag: "周常", tagType: "mid" },
-        { id: "mo1", text: "每月：考勤数据锁定与导出（Kronos Sign off后Payroll Lock）", tag: "月常", tagType: "high", note: "Sign off后考勤卡锁定，如8月2日Sign off锁定7月1日之前的考勤卡" },
+        { id: "mo1", text: "每月：考勤数据锁定与导出（Kronos Sign off后Payroll Lock）", tag: "月常", tagType: "high" },
         { id: "mo2", text: "每月：工时汇总与薪资系统对接（考勤转薪资）", tag: "月常", tagType: "high" },
         { id: "mo3", text: "每月：薪资核算前异常项复核 & 发薪后答疑", tag: "月常", tagType: "mid" },
         { id: "qy1", text: "季度/年：年假额度更新 & 最低工资基线检查", tag: "周期", tagType: "low" },
@@ -423,11 +795,11 @@ var checklistData = [
     ]},
     { title: "六、合规红线清单", category: "compliance", items: [
         { id: "law1", text: "确认苏州门店适用工时制度及审批文件位置", tag: "红线", tagType: "redline" },
-        { id: "law2", text: "掌握加班费标准：工作日150%/休息日200%（综合工时制下不区分）/法定300%", tag: "红线", tagType: "redline" },
+        { id: "law2", text: "掌握加班费标准：工作日150%/休息日200%/法定300%", tag: "红线", tagType: "redline" },
         { id: "law3", text: "标准工时制：每月延长工时≤36小时上限", tag: "红线", tagType: "redline" },
         { id: "law4", text: "苏州最低工资标准及折算时薪核对", tag: "红线", tagType: "redline" },
         { id: "law5", text: "工资支付日期：40H/28H每月25日发薪；24H社会兼职每月10日及25日分两次发薪", tag: "红线", tagType: "redline" },
-        { id: "law6", text: "法定节假日共11天，按日历日期执行（非政府调休换算）", tag: "红线", tagType: "redline" }
+        { id: "law6", text: "法定节假日共11天，按日历日期执行", tag: "红线", tagType: "redline" }
     ]},
     { title: "七、异常处理SOP", category: "sop", items: [
         { id: "sop1", text: "漏打卡：员工申诉→经理确认→系统补签→薪资影响确认", tag: "SOP", tagType: "mid" },
@@ -435,14 +807,14 @@ var checklistData = [
         { id: "sop3", text: "排班与请假冲突：手动修正排班，确认不影响薪资", tag: "SOP", tagType: "mid" },
         { id: "sop4", text: "换班：确认工时累计和加班计算影响", tag: "SOP", tagType: "mid" },
         { id: "sop5", text: "兼职合同与工时不匹配：核对12H/24H档位", tag: "SOP", tagType: "mid" },
-        { id: "sop6", text: "Kronos考勤卡锁定后修改：需进行历史编辑（Historical Edit）", tag: "SOP", tagType: "high", note: "已锁定考勤卡无人可修改，必须走历史编辑流程" }
+        { id: "sop6", text: "Kronos考勤卡锁定后修改：需进行历史编辑（Historical Edit）", tag: "SOP", tagType: "high" }
     ]},
     { title: "八、关键联系人清单", category: "contact", items: [
         { id: "cnt1", text: "Unit P&C Manager：预算框架、超预算排班审批", tag: "联系人", tagType: "low" },
         { id: "cnt2", text: "Country P&C Team / PC Delivery Team：政策解释、年假折现Case提交", tag: "联系人", tagType: "low" },
-        { id: "cnt3", text: "HRSS (Human Resource Shared Service)：薪酬共享服务", tag: "联系人", tagType: "low" },
+        { id: "cnt3", text: "HRSS：薪酬共享服务", tag: "联系人", tagType: "low" },
         { id: "cnt4", text: "ASK team：系统支持", tag: "联系人", tagType: "low" },
-        { id: "cnt5", text: "部门经理：排班确认、考勤异常确认、年假使用提醒", tag: "联系人", tagType: "low" },
+        { id: "cnt5", text: "部门经理：排班确认、考勤异常确认", tag: "联系人", tagType: "low" },
         { id: "cnt6", text: "工会代表：涉及工会条款的排班调整", tag: "联系人", tagType: "low" }
     ]},
     { title: "九、交接实操建议（三周计划）", category: "plan", items: [
@@ -460,13 +832,13 @@ var roleData = [
         { id: "r1_3", text: "岗位使命：通过确保公平性来平衡业务和员工的排班需求，确保所有工时合规", tag: "JD", tagType: "role" }
     ]},
     { title: "二、核心工作职责", tagType: "role", items: [
-        { id: "r2_1", text: "在unit层面实施People Planning策略，遵循Country P&C制定的流程和指南", tag: "职责", tagType: "role" },
+        { id: "r2_1", text: "在unit层面实施People Planning策略", tag: "职责", tagType: "role" },
         { id: "r2_2", text: "确保遵守IKEA用工标准、本地法规和工会要求", tag: "职责", tagType: "role" },
         { id: "r2_3", text: "与部门经理协作创建并及时发布排班，对齐工时预算", tag: "职责", tagType: "role" },
         { id: "r2_4", text: "与部门经理协作制定unit people planning优先事项", tag: "职责", tagType: "role" },
-        { id: "r2_5", text: "作为unit P&C与Business Navigation之间的纽带，确保排班跟随业务预测", tag: "职责", tagType: "role" },
+        { id: "r2_5", text: "作为unit P&C与Business Navigation之间的纽带", tag: "职责", tagType: "role" },
         { id: "r2_6", text: "应用工具和数据分析改进流程", tag: "职责", tagType: "role" },
-        { id: "r2_7", text: "整合业务驱动因素、工作量因素和资质需求，通过多技能支持员工发展", tag: "职责", tagType: "role" },
+        { id: "r2_7", text: "整合业务驱动因素、工作量因素和资质需求", tag: "职责", tagType: "role" },
         { id: "r2_8", text: "与招聘经理协作，确保空缺岗位对照HC/合同级别/合同类型/能力需求审核", tag: "职责", tagType: "role" },
         { id: "r2_9", text: "在unit层面提升People Planning原则和流程的认知", tag: "职责", tagType: "role" },
         { id: "r2_10", text: "确保及时评估考勤卡以支持正确的薪资流程", tag: "职责", tagType: "role" },
@@ -477,23 +849,23 @@ var roleData = [
         { id: "r3_2", text: "深入理解people planning流程及其在unit层面的执行方式", tag: "知识", tagType: "role" },
         { id: "r3_3", text: "良好掌握在预算框架内实施计划", tag: "知识", tagType: "role" },
         { id: "r3_4", text: "良好掌握有薪工时和实际工时的维度划分", tag: "知识", tagType: "role" },
-        { id: "r3_5", text: "良好掌握如何评估现有人员编制结构并提出理想合同结构", tag: "知识", tagType: "role" },
+        { id: "r3_5", text: "良好掌握如何评估现有人员编制结构", tag: "知识", tagType: "role" },
         { id: "r3_6", text: "良好掌握unit业务驱动因素和任务如何对齐改善客户体验", tag: "知识", tagType: "role" },
         { id: "r3_7", text: "了解雇主和员工的权利与义务", tag: "知识", tagType: "role" },
         { id: "r3_8", text: "良好掌握排班和考勤软件的使用（My Time / KRONOS / Global View）", tag: "知识", tagType: "role" },
-        { id: "r3_9", text: "良好掌握法律法规中people planning的要求、IKEA用工标准及合规性", tag: "知识", tagType: "role" },
-        { id: "r3_10", text: "能力：独立工作、主动担当，同时也是团队成员", tag: "能力", tagType: "role" },
-        { id: "r3_11", text: "能力：清晰沟通复杂的unit运营、动态关系和技术关联", tag: "能力", tagType: "role" },
-        { id: "r3_12", text: "能力：影响和激励People Planning流程中的利益相关者", tag: "能力", tagType: "role" },
-        { id: "r3_13", text: "动力：热爱员工，坚信个人潜力；推动数字化转型", tag: "动力", tagType: "role" }
+        { id: "r3_9", text: "良好掌握法律法规中people planning的要求", tag: "知识", tagType: "role" },
+        { id: "r3_10", text: "能力：独立工作、主动担当", tag: "能力", tagType: "role" },
+        { id: "r3_11", text: "能力：清晰沟通复杂的unit运营关系", tag: "能力", tagType: "role" },
+        { id: "r3_12", text: "能力：影响和激励利益相关者", tag: "能力", tagType: "role" },
+        { id: "r3_13", text: "动力：热爱员工；推动数字化转型", tag: "动力", tagType: "role" }
     ]},
     { title: "四、领导力行为", tagType: "role", items: [
-        { id: "r4_1", text: "Build Strong Relationships — 建立稳固关系", tag: "领导力", tagType: "role" },
-        { id: "r4_2", text: "Collaborate & Co-create — 协作与共创", tag: "领导力", tagType: "role" },
-        { id: "r4_3", text: "Create customer value — 创造客户价值", tag: "领导力", tagType: "role" },
-        { id: "r4_4", text: "Lead with IKEA Values — 以IKEA价值观引领", tag: "领导力", tagType: "role" },
-        { id: "r4_5", text: "Inspire & Clarify — 激励与澄清", tag: "领导力", tagType: "role" },
-        { id: "r4_6", text: "Unleash Entrepreneurs — 释放企业家精神", tag: "领导力", tagType: "role" }
+        { id: "r4_1", text: "Build Strong Relationships", tag: "领导力", tagType: "role" },
+        { id: "r4_2", text: "Collaborate & Co-create", tag: "领导力", tagType: "role" },
+        { id: "r4_3", text: "Create customer value", tag: "领导力", tagType: "role" },
+        { id: "r4_4", text: "Lead with IKEA Values", tag: "领导力", tagType: "role" },
+        { id: "r4_5", text: "Inspire & Clarify", tag: "领导力", tagType: "role" },
+        { id: "r4_6", text: "Unleash Entrepreneurs", tag: "领导力", tagType: "role" }
     ]},
     { title: "五、绩效指标来源", tagType: "role", items: [
         { id: "r5_1", text: "Engagement index — 员工敬业度指数", tag: "KPI", tagType: "role" },
@@ -501,13 +873,13 @@ var roleData = [
         { id: "r5_3", text: "Values index — 价值观指数", tag: "KPI", tagType: "role" },
         { id: "r5_4", text: "Co-worker turnover — 员工流失率", tag: "KPI", tagType: "role" },
         { id: "r5_5", text: "Customer perception of treating co-workers well", tag: "KPI", tagType: "role" },
-        { id: "r5_6", text: "Simplicity & speed — 简洁与速度", tag: "KPI", tagType: "role" },
+        { id: "r5_6", text: "Simplicity & speed", tag: "KPI", tagType: "role" },
         { id: "r5_7", text: "Performance index — 绩效指数", tag: "KPI", tagType: "role" },
         { id: "r5_8", text: "Local business plan expected contribution", tag: "KPI", tagType: "role" }
     ]},
     { title: "六、关键经验与技能", tagType: "role", items: [
-        { id: "r6_1", text: "能够通过人来理解、发展和/或改进业务流程", tag: "经验", tagType: "role" },
-        { id: "r6_2", text: "有在矩阵和团队内部及跨矩阵成功协作的记录", tag: "经验", tagType: "role" },
+        { id: "r6_1", text: "通过人来理解、发展和/或改进业务流程", tag: "经验", tagType: "role" },
+        { id: "r6_2", text: "有跨矩阵成功协作的记录", tag: "经验", tagType: "role" },
         { id: "r6_3", text: "擅长使用数字化解决方案", tag: "经验", tagType: "role" },
         { id: "r6_4", text: "持续学习者，有创造力的解决问题者", tag: "经验", tagType: "role" }
     ]}
@@ -515,126 +887,443 @@ var roleData = [
 
 var guideData = [
     { title: "一、People Planning框架与原则", category: "framework", items: [
-        { id: "g1_1", text: "People Planning使命：5代客户+5代员工，满足客户需求同时尊重员工需求", tag: "框架", tagType: "guide" },
-        { id: "g1_2", text: "People Planning三大产出：Engaged Co-workers→Modern Solutions→Happy Customers", tag: "框架", tagType: "guide" },
+        { id: "g1_1", text: "People Planning使命：5代客户+5代员工", tag: "框架", tagType: "guide" },
+        { id: "g1_2", text: "三大产出：Engaged Co-workers→Modern Solutions→Happy Customers", tag: "框架", tagType: "guide" },
         { id: "g1_3", text: "口号：'At IKEA I plan my work'", tag: "框架", tagType: "guide" },
-        { id: "g1_4", text: "六大原则：①客户需求为起点 ②赋能员工选择班次 ③工时合规 ④灵活适应 ⑤公平 ⑥数字化工具", tag: "原则", tagType: "guide" },
+        { id: "g1_4", text: "六大原则：客户需求/员工选择/工时合规/灵活适应/公平/数字化", tag: "原则", tagType: "guide" },
         { id: "g1_5", text: "流程框架：Plan→People→Process→Steer→Enable→Operate", tag: "流程", tagType: "guide" },
         { id: "g1_6", text: "愿景：Better homes, Better lives, Better company", tag: "愿景", tagType: "guide" }
     ]},
     { title: "二、WH工时分配原则", category: "wh", items: [
         { id: "g2_1", text: "WH预算来源：年度销售额 + 人员成本目标 + 生产率目标", tag: "分配", tagType: "guide" },
-        { id: "g2_2", text: ">500M门店WH分配：Sales 44-50%, Log 12-16%, ComIn 4.5-6%, LM 0.75-1.2%, CR 26-30%, P&C 0.8-1.8%, Ops 5-6%", tag: "分配", tagType: "guide" },
-        { id: "g2_3", text: "300-500M门店WH分配：Sales 44-50%, Log 9-15%, ComIn 6.5-9%, CR 22-26%", tag: "分配", tagType: "guide" },
-        { id: "g2_4", text: "<300M门店WH分配：Sales 44-50%, Log 9-13%, ComIn 6-9%, CR 20-24%", tag: "分配", tagType: "guide" },
-        { id: "g2_5", text: "按用工类型分配：40H:28H:PT = 50%:20%:30%", tag: "分配", tagType: "guide" }
+        { id: "g2_2", text: ">500M门店：Sales 44-50%, Log 12-16%, ComIn 4.5-6%, CR 26-30%", tag: "分配", tagType: "guide" },
+        { id: "g2_3", text: "300-500M门店：Sales 44-50%, Log 9-15%, ComIn 6.5-9%, CR 22-26%", tag: "分配", tagType: "guide" },
+        { id: "g2_4", text: "<300M门店：Sales 44-50%, Log 9-13%, ComIn 6-9%, CR 20-24%", tag: "分配", tagType: "guide" },
+        { id: "g2_5", text: "用工类型分配：40H:28H:PT = 50%:20%:30%", tag: "分配", tagType: "guide" }
     ]},
     { title: "三、HC计算公式", category: "hc", items: [
         { id: "g3_1", text: "40H年工时：1856H = 40×52 - 11×8 - 15×8 - 2×8", tag: "公式", tagType: "guide" },
-        { id: "g3_2", text: "28H年工时：1560H = 30×52", tag: "公式", tagType: "guide", note: "28H合同实际按30H排班" },
+        { id: "g3_2", text: "28H年工时：1560H = 30×52", tag: "公式", tagType: "guide", note: "28H合同按30H排班" },
         { id: "g3_3", text: "24H年工时：1040H = 20×52", tag: "公式", tagType: "guide" },
         { id: "g3_4", text: "HC计算：40H HC = (门店总WH×50%) / 1856", tag: "公式", tagType: "guide" },
         { id: "g3_5", text: "HC计算：28H HC = (门店总WH×20%) / 1560", tag: "公式", tagType: "guide" },
         { id: "g3_6", text: "HC计算：24H HC = (门店总WH×30%) / 1040", tag: "公式", tagType: "guide" }
     ]},
     { title: "四、用工类型详解", category: "employment", items: [
-        { id: "g4_1", text: "全职-劳动合同员工：40H按月/28H按小时，受劳动合同法保护", tag: "用工", tagType: "guide" },
-        { id: "g4_2", text: "全职-退休返聘：签《退休返聘合同》，劳务合同性质", tag: "用工", tagType: "guide" },
-        { id: "g4_3", text: "兼职-社会兼职：签《非全日制劳动合同》，日≤4H，周≤24H", tag: "用工", tagType: "guide" },
-        { id: "g4_4", text: "兼职-退休兼职：签《劳务合同》，周12-40H", tag: "用工", tagType: "guide" },
-        { id: "g4_5", text: "兼职-学生兼职：签《实习协议》，非法律意义上劳动者", tag: "用工", tagType: "guide" },
-        { id: "g4_6", text: "28H员工：周工时不超过32H（不含休息时间）", tag: "用工", tagType: "guide" }
+        { id: "g4_1", text: "全职-劳动合同员工：40H按月/28H按小时", tag: "用工", tagType: "guide" },
+        { id: "g4_2", text: "全职-退休返聘：劳务合同性质", tag: "用工", tagType: "guide" },
+        { id: "g4_3", text: "兼职-社会兼职：日≤4H，周≤24H", tag: "用工", tagType: "guide" },
+        { id: "g4_4", text: "兼职-退休兼职：周12-40H", tag: "用工", tagType: "guide" },
+        { id: "g4_5", text: "兼职-学生兼职：签《实习协议》", tag: "用工", tagType: "guide" },
+        { id: "g4_6", text: "28H员工：周工时不超过32H", tag: "用工", tagType: "guide" }
     ]},
     { title: "五、中国工时制度", category: "whs", items: [
-        { id: "g5_1", text: "标准工时制：日≤8H，周≤44H，每周≥1天休息，月加班≤36H", tag: "法规", tagType: "guide" },
-        { id: "g5_2", text: "综合计算工时制：周期内总工时不超过法定标准，超出按150%", tag: "法规", tagType: "guide" },
-        { id: "g5_3", text: "综合工时制-法定休假日工作按300%支付", tag: "法规", tagType: "guide" },
-        { id: "g5_4", text: "不定时工时制：无固定工作时间限制，需劳动部门审批", tag: "法规", tagType: "guide" }
+        { id: "g5_1", text: "标准工时制：日≤8H，周≤44H，月加班≤36H", tag: "法规", tagType: "guide" },
+        { id: "g5_2", text: "综合计算工时制：超出按150%，不区分公休日", tag: "法规", tagType: "guide" },
+        { id: "g5_3", text: "综合工时制-法定休假日按300%支付", tag: "法规", tagType: "guide" },
+        { id: "g5_4", text: "不定时工时制：需劳动部门审批", tag: "法规", tagType: "guide" }
     ]},
     { title: "六、排班管理规则", category: "schedule", items: [
         { id: "g6_1", text: "连续工作≤6天确保休息1天", tag: "排班", tagType: "guide" },
-        { id: "g6_2", text: "排班需求：每2周可提最多2次平常日需求，每4周可提1个周末双休日需求", tag: "排班", tagType: "guide" },
+        { id: "g6_2", text: "排班需求：每2周可提2次平常日需求，每4周可提1个周末需求", tag: "排班", tagType: "guide" },
         { id: "g6_3", text: "两个班次间隔不少于11小时", tag: "排班", tagType: "guide" },
         { id: "g6_4", text: "每天只排一个班次", tag: "排班", tagType: "guide" },
         { id: "g6_5", text: "怀孕和哺乳期员工不排18时以后的班次", tag: "排班", tagType: "guide", note: "⚠️ 合规红线" },
         { id: "g6_6", text: "员工每周晚班排班天数视工作需要而定", tag: "排班", tagType: "guide" }
     ]},
     { title: "七、休息时间规则", category: "rest", items: [
-        { id: "g7_1", text: "≤4H：不设休息时间", tag: "休息", tagType: "guide" },
-        { id: "g7_2", text: "4H以上至6H（含6H）：休息0.5小时", tag: "休息", tagType: "guide" },
-        { id: "g7_3", text: "6H以上至10H：休息1小时（含30min用餐+2次15min休息）", tag: "休息", tagType: "guide" },
+        { id: "g7_1", text: "≤4H：不设休息", tag: "休息", tagType: "guide" },
+        { id: "g7_2", text: "4H~6H：休息0.5小时", tag: "休息", tagType: "guide" },
+        { id: "g7_3", text: "6H~10H：休息1小时（30min用餐+2×15min）", tag: "休息", tagType: "guide" },
         { id: "g7_4", text: "=10H：休息2小时", tag: "休息", tagType: "guide" }
     ]},
     { title: "八、薪酬与发薪规则", category: "payroll", items: [
         { id: "g8_1", text: "40H：每月25日发薪，周期=当月1日~月底", tag: "发薪", tagType: "guide" },
         { id: "g8_2", text: "28H：每月25日发薪，周期=上月16日~当月15日", tag: "发薪", tagType: "guide" },
         { id: "g8_3", text: "24H社会兼职：每月10日及25日分两次发薪", tag: "发薪", tagType: "guide" },
-        { id: "g8_4", text: "24H学生工/退休兼职：每月25日发薪，周期=上月16日~本月15日", tag: "发薪", tagType: "guide" },
+        { id: "g8_4", text: "24H学生工/退休兼职：每月25日发薪", tag: "发薪", tagType: "guide" },
         { id: "g8_5", text: "Kronos Payroll Lock：每次Sign off后锁定往期考勤卡", tag: "发薪", tagType: "guide" },
-        { id: "g8_6", text: "Sign off日历：每月2日和16日为Sign off日", tag: "发薪", tagType: "guide" }
+        { id: "g8_6", text: "Sign off日历：每月2日和16日", tag: "发薪", tagType: "guide" }
     ]},
     { title: "九、常用工资代码", category: "paycode", items: [
-        { id: "g9_1", text: "Productive Hours-RET：生产力工时-零售", tag: "代码", tagType: "guide" },
-        { id: "g9_2", text: "Business Travel hours：在外培训/开会/市调，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_3", text: "Meeting Hours：在自己商场的会议，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_4", text: "Training Hours：年度计划内的培训，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_5", text: "Rebuild：在自己店进行改造工作，属于本商场工时", tag: "代码", tagType: "guide" },
-        { id: "g9_6", text: "Project Hours：支援别的店，⚠️ 不属于本商场工时！", tag: "代码", tagType: "guide" },
-        { id: "g9_7", text: "OT 1.5 / OT 3：加班工时-1.5倍 / 加班工时-3倍", tag: "代码", tagType: "guide" },
-        { id: "g9_8", text: "Regular：正常工时 / Manual Input Hour：手动添加工时", tag: "代码", tagType: "guide" }
+        { id: "g9_1", text: "Productive Hours-RET：生产力工时", tag: "代码", tagType: "guide" },
+        { id: "g9_2", text: "Business Travel：在外培训/开会/市调，属于本商场", tag: "代码", tagType: "guide" },
+        { id: "g9_3", text: "Meeting Hours：自己商场会议，属于本商场", tag: "代码", tagType: "guide" },
+        { id: "g9_4", text: "Training Hours：年度计划内培训，属于本商场", tag: "代码", tagType: "guide" },
+        { id: "g9_5", text: "Rebuild：在自己店改造，属于本商场", tag: "代码", tagType: "guide" },
+        { id: "g9_6", text: "Project Hours：支援别的店，❌ 不属于本商场！", tag: "代码", tagType: "guide" },
+        { id: "g9_7", text: "OT 1.5 / OT 3：加班-1.5倍/3倍", tag: "代码", tagType: "guide" },
+        { id: "g9_8", text: "Regular：正常工时 / Manual Input：手动添加", tag: "代码", tagType: "guide" }
     ]},
     { title: "十、季度工时与OT Tracking", category: "ottrack", items: [
-        { id: "g10_1", text: "Compensation Leave 100/200：调休假100/200", tag: "季度", tagType: "guide" },
-        { id: "g10_2", text: "各类假期代码：丧假/住院假/婚假/产假/护理假/陪产假/工伤假等", tag: "季度", tagType: "guide" },
+        { id: "g10_1", text: "Compensation Leave 100/200：调休假", tag: "季度", tagType: "guide" },
+        { id: "g10_2", text: "各类假期代码：丧假/住院假/婚假/产假/护理假/陪产假等", tag: "季度", tagType: "guide" },
         { id: "g10_3", text: "年假代码：公司年假/法定年假/上年公司年假/上年法定年假", tag: "季度", tagType: "guide" },
-        { id: "g10_4", text: "Q&A经典三问：Project Hour是否属于Productive Hour？Meeting Hour？排Paycode的员工还需打卡吗？", tag: "Q&A", tagType: "guide" }
+        { id: "g10_4", text: "Q&A：Project Hour是否Productive？Meeting Hour？排Paycode是否打卡？", tag: "Q&A", tagType: "guide" }
     ]},
     { title: "十一、宜家公司年假", category: "leave", items: [
         { id: "g11_1", text: "宜家年假 = 法定年假 + 公司年假，统计为自然日", tag: "年假", tagType: "guide" },
-        { id: "g11_2", text: "SSG年假：2022年9月1日前入职=20天起始；之后=15天起始", tag: "年假", tagType: "guide" },
-        { id: "g11_3", text: "公司年假（按宜家服务年限N）：N<5=15天；5≤N<10=17天；10≤N<15=19天；15≤N<20=21天；20≤N<25=23天；N≥25=25天", tag: "年假", tagType: "guide", note: "按天折算向上取整" },
-        { id: "g11_4", text: "法定年假（按社会工龄N）：N<10=5天；10≤N<20=10天；N≥20=15天", tag: "年假", tagType: "guide", note: "按天折算向下取整" },
-        { id: "g11_5", text: "兼职年假：只有公司年假，每年5天，入职满6个月才可使用", tag: "年假", tagType: "guide" },
-        { id: "g11_6", text: "兼职年假折现：当年未用完在1月工资折现（提Case给PC Delivery Team）", tag: "年假", tagType: "guide" }
+        { id: "g11_2", text: "SSG年假：2022年9月前入职=20天；之后=15天", tag: "年假", tagType: "guide" },
+        { id: "g11_3", text: "公司年假：N<5=15天；5≤N<10=17天；10≤N<15=19天；15≤N<20=21天；20≤N<25=23天；N≥25=25天", tag: "年假", tagType: "guide", note: "向上取整" },
+        { id: "g11_4", text: "法定年假：N<10=5天；10≤N<20=10天；N≥20=15天", tag: "年假", tagType: "guide", note: "向下取整" },
+        { id: "g11_5", text: "兼职年假：每年5天，满6个月才可用", tag: "年假", tagType: "guide" },
+        { id: "g11_6", text: "兼职年假折现：提Case给PC Delivery Team", tag: "年假", tagType: "guide" }
     ]},
     { title: "十二、年假结转规则", category: "leavecarry", items: [
-        { id: "g12_1", text: "全职员工每年可带5天年假到第二年使用", tag: "结转", tagType: "guide" },
-        { id: "g12_2", text: "结转优先顺序：法定年假优先，其次公司年假", tag: "结转", tagType: "guide" },
-        { id: "g12_3", text: "超出结转额度的法定年假：以3倍工资在1月份发放", tag: "结转", tagType: "guide" },
-        { id: "g12_4", text: "超出结转额度的公司年假：直接作废", tag: "结转", tagType: "guide" },
-        { id: "g12_5", text: "请定期提醒部门经理年假使用情况", tag: "结转", tagType: "guide" }
+        { id: "g12_1", text: "全职每年可带5天年假到第二年", tag: "结转", tagType: "guide" },
+        { id: "g12_2", text: "结转优先：法定年假优先，其次公司年假", tag: "结转", tagType: "guide" },
+        { id: "g12_3", text: "超出法定年假：3倍工资在1月发放", tag: "结转", tagType: "guide" },
+        { id: "g12_4", text: "超出公司年假：直接作废", tag: "结转", tagType: "guide" },
+        { id: "g12_5", text: "定期提醒部门经理年假使用情况", tag: "结转", tagType: "guide" }
     ]},
     { title: "十三、年假计算案例", category: "leavecalc", items: [
-        { id: "g13_1", text: "案例1：8月12日入职全职员工，社会工龄5年", tag: "案例", tagType: "guide", note: "法定年假≈1天；宜家年假≈6天；公司年假=5天" },
-        { id: "g13_2", text: "案例2：2014年7月7日加入宜家的应届生，2019年应享多少公司年假？", tag: "案例", tagType: "guide", note: "公司年假=11天" }
+        { id: "g13_1", text: "案例1：8月12日入职，社会工龄5年→法定约1天，宜家约6天，公司=5天", tag: "案例", tagType: "guide" },
+        { id: "g13_2", text: "案例2：2014年入职应届生，2019年→公司年假=11天", tag: "案例", tagType: "guide" }
     ]},
     { title: "十四、FY23预算原则", category: "budget", items: [
         { id: "g14_1", text: "预算范围：Store managed staff cost before SFF", tag: "预算", tagType: "guide" },
-        { id: "g14_2", text: "FY23新增：Lending co-worker booking impact / Picking cost", tag: "预算", tagType: "guide" },
-        { id: "g14_3", text: "预算原则：Zero based cost budgeting", tag: "预算", tagType: "guide" },
-        { id: "g14_4", text: "调整项：城市层级劳动力成本差异/Fulfilment volume/Return impact等", tag: "预算", tagType: "guide" }
+        { id: "g14_2", text: "FY23新增：Lending impact / Picking cost", tag: "预算", tagType: "guide" },
+        { id: "g14_3", text: "Zero based cost budgeting", tag: "预算", tagType: "guide" },
+        { id: "g14_4", text: "调整项：城市层级/ Fulfilment volume / Return impact等", tag: "预算", tagType: "guide" }
     ]},
     { title: "十五、Staff Cost定义与CPWH", category: "staffcost", items: [
         { id: "g15_1", text: "Staff Cost(Total) = Staff Cost + Other Staff Cost", tag: "成本", tagType: "guide" },
-        { id: "g15_2", text: "Staff Cost包含：Salary/Holiday pay/Social charges/Overtime/Sub-contract/Relocation", tag: "成本", tagType: "guide" },
-        { id: "g15_3", text: "Other Staff Cost包含：Recruitment/F&B recharge/Uniforms/Training/Insurance等", tag: "成本", tagType: "guide" },
+        { id: "g15_2", text: "Staff Cost：Salary/Holiday pay/Social charges/Overtime/Sub-contract/Relocation", tag: "成本", tagType: "guide" },
+        { id: "g15_3", text: "Other Staff Cost：Recruitment/F&B/Uniforms/Training/Insurance等", tag: "成本", tagType: "guide" },
         { id: "g15_4", text: "CPWH = Total Staff Cost / Worked Hour", tag: "成本", tagType: "guide" },
         { id: "g15_5", text: "生产率 = Sales Volume (dm³) / Working Hour", tag: "成本", tagType: "guide" }
     ]},
     { title: "十六、WH Budget流程", category: "whbudget", items: [
-        { id: "g16_1", text: "WH Budget来源：Sales turnover + Staff cost goal + Productivity goal", tag: "流程", tagType: "guide" },
-        { id: "g16_2", text: "SO PP team & BN team提供：销售额/客流/客数/Sold volume(m³)", tag: "流程", tagType: "guide" },
-        { id: "g16_3", text: "Store budgeting三步：①Set hours budget ②Set business drivers volume ③Allocate hours", tag: "流程", tagType: "guide" },
-        { id: "g16_4", text: "Allocate hours任务：计算部门平均周预算工时/确定部门运营时间/确定最小和最大HC", tag: "流程", tagType: "guide" }
+        { id: "g16_1", text: "WH Budget来源：Sales + Staff cost goal + Productivity goal", tag: "流程", tagType: "guide" },
+        { id: "g16_2", text: "SO PP & BN team提供：销售额/客流/客数/Sold volume(m³)", tag: "流程", tagType: "guide" },
+        { id: "g16_3", text: "三步：①Set hours budget ②Set drivers volume ③Allocate hours", tag: "流程", tagType: "guide" },
+        { id: "g16_4", text: "Allocate hours：计算周预算工时/运营时间/最小最大HC", tag: "流程", tagType: "guide" }
     ]},
     { title: "十七、自助资源", category: "resource", items: [
-        { id: "res1", text: "内部：My Time系统操作指南（本工具已整合核心要点）", tag: "资源", tagType: "low" },
-        { id: "res2", text: "内部：People Planning White Book FY23（本工具已整合核心要点）", tag: "资源", tagType: "low" },
-        { id: "res3", text: "内部：Workrole Mapping & Business Structure（本工具已整合部门对照表）", tag: "资源", tagType: "low" },
-        { id: "res4", text: "内部：Ingka Employment Standards / 员工手册", tag: "资源", tagType: "low" },
-        { id: "res5", text: "外部：《工资支付暂行规定》", tag: "资源", tagType: "low" },
-        { id: "res6", text: "外部：中国劳动法 — 工时制度/加班费/最低工资标准", tag: "资源", tagType: "low" }
+        { id: "res1", text: "My Time系统操作指南（本工具已整合）", tag: "资源", tagType: "low" },
+        { id: "res2", text: "People Planning White Book FY23（本工具已整合）", tag: "资源", tagType: "low" },
+        { id: "res3", text: "Workrole Mapping & Business Structure（本工具已整合）", tag: "资源", tagType: "low" },
+        { id: "res4", text: "Ingka Employment Standards / 员工手册", tag: "资源", tagType: "low" },
+        { id: "res5", text: "《工资支付暂行规定》", tag: "资源", tagType: "low" },
+        { id: "res6", text: "中国劳动法", tag: "资源", tagType: "low" }
     ]}
+];
+
+/* ================= 周期工作数据（来自 Trista 交接文档） ================= */
+var cycleData = [
+    {
+        level: "yearly", levelName: "年度", levelClass: "yearly", levelColor: "var(--yearly-color)",
+        items: [
+            {
+                id: "cy_y1", text: "WH Allocation（年度工时分配）", priority: "high",
+                detail: "年初根据门店销售目标、人员成本目标和生产率目标，完成全年WH预算分配到各部门。\n关键词：年度预算 / 部门分配 / 业务预测"
+            },
+            {
+                id: "cy_y2", text: "季度工时 Follow Up（全年1840H）", priority: "high",
+                detail: "全年工时预算1840H基准，每季度跟踪实际工时 vs 预算工时差异，超出预算需分析原因并汇报。\n关键词：1840H / 季度跟踪 / 预算差异分析"
+            }
+        ]
+    },
+    {
+        level: "quarterly", levelName: "季度", levelClass: "quarterly", levelColor: "var(--quarterly-color)",
+        items: [
+            {
+                id: "cy_q1", text: "工会费（季度缴纳）", priority: "mid",
+                detail: "每季度统计并缴纳工会费。\n联系人：工会代表"
+            },
+            {
+                id: "cy_q2", text: "年假（年末法定年假清零）", priority: "high",
+                detail: "年末前确保法定年假使用完毕或按规则结转/折现。\n规则：法定年假可结转5天，超出的法定年假3倍工资在1月发放；超出的公司年假直接作废。\n提醒：提前提醒部门经理员工年假余额情况"
+            },
+            {
+                id: "cy_q3", text: "健康证（到期更新跟踪）", priority: "mid",
+                detail: "跟踪餐饮部（IKEA Food）员工健康证到期情况，提醒提前办理更新。\n关键词：IKEA Food员工 / 到期提醒 / 食品安全合规"
+            }
+        ]
+    },
+    {
+        level: "monthly", levelName: "月度", levelClass: "monthly", levelColor: "var(--monthly-color)",
+        items: [
+            {
+                id: "cy_m1", text: "员工折扣名单导出", priority: "mid",
+                detail: "从Data Harbor导出omni员工折扣名单，更新员工折扣资格状态。\n系统：Data Harbor\n关键词：omni / 折扣名单 / 资格更新"
+            },
+            {
+                id: "cy_m2", text: "Massdata（月度数据维护）", priority: "mid",
+                detail: "月度Massdata数据维护和更新，确保HR系统数据准确性。\n关键词：数据维护 / 系统准确性"
+            },
+            {
+                id: "cy_m3", text: "值班表格 — Collection & Duty & 值班更新", priority: "high",
+                detail: "第一步：每月15号之前发链接收集大家值班意愿 → FY27 Store Duty Roster Special Needs Collection.xlsx\n第二步：收集SMG值班需求后，结合SSG Roster和销售值班（问冯源），制定1~2个月值班表格\n第三步：制作好商场值班表格，发邮件给所有SMG，并同步到 FY27 Daily data key in&值班广播稿.xlsx（安保只看这个表格，每次变化都要同步）\nSSG周末值班参考：David、Ryan、Lee周日上班；Alexa、Winnie、Hocky、Leo周六值班\n关键词：每月15号 / SMG+SSG / 公平分配 / 安保同步"
+            },
+            {
+                id: "cy_m4", text: "中智兼职工时统计 + 工资计算 + Ariba下单", priority: "high",
+                detail: "中智兼职月度流程：\n① 统计中智兼职工时 + 计算工资 → 发送给樊思佳 → 统计到SO表格\n② Ariba下单流程：\n   第一步：中智账单路径 → 把方框里数字变成文本格式\n   第二步：删除员工薪资明细，只保留付款通知。IF部门薪资文件发给时文，抄送Alexa和David；Store和Fulfillment自己下单（需附薪资明细附件）\n   第三步：下单完成审批后打印纸质单 → 找其他部门任意两个同事签字 → 交到朱岑梦背后的Ishop框里\n账单存档路径：\\\\RETCN484-NT0001.IKEA.COM\\Common_B\\HR_secret_garden\\02 People Planning\\01排班报表\\企业微信工资核对\\兼职Payroll存档\\每月兼职费用\n联系人：樊思佳（工时统计）、时文（IF部门薪资）、Alexa & David（抄送）、冯源（销售值班）"
+            },
+            {
+                id: "cy_m5", text: "Monthly Reminder（合同续签/试用期/司龄/退休）", priority: "mid",
+                detail: "收到Admin发来的Monthly Reminder邮件，包含：\n• Contract renewal（合同续签）：提前3个月，提前2个月给经理发邮件\n• Probation（试用期）：提前6个月，需目标设定，3个月follow和6个月follow（6个月follow最好在5-6个月交接时做）\n• Service year（司龄）：提前6个月\n• Retirement（退休）：提前6个月，退休流程路径 → \\\\RETCN484-NT0001.IKEA.COM\\Common_B\\HR_secret_garden\\11 HR Admin\\13退休办理\\惠萍\n关键词：提前提醒 / 经理跟进 / 退休办"
+            },
+            {
+                id: "cy_m6", text: "Icontrol（卢卓建/Rachel负责的系统）", priority: "low",
+                detail: "Icontrol系统维护：\n• P&C Manager部分由卢卓建负责（Trista Su）\n• HR部分由Rachel负责\n关键词：系统维护 / 分工明确"
+            },
+            {
+                id: "cy_m7", text: "I-recognize（员工认可平台）", priority: "low",
+                detail: "员工认可平台操作，操作指南路径：\n\\\\RETCN484-NT0001.IKEA.COM\\Common_B\\HR_secret_garden\\08 Compensation & Benefits\\Co-worker Recognition Platform FY26\n关键词：认可平台 / 操作指南"
+            }
+        ]
+    },
+    {
+        level: "biweekly", levelName: "半月度（Sign off周期）", levelClass: "biweekly", levelColor: "var(--biweekly-color)",
+        items: [
+            {
+                id: "cy_b1", text: "Sign off（每半月一次，每月2日和16日）", priority: "high",
+                detail: "Sign off完整流程：\n\n【Sign off前】\n• 发布班表：每周三上午10点发布（Step1:选部门 → Step2:选日期 → Step3:选发布状态）\n  注意：Div代表function不用管；Dep_service operation代表IT任晓龙不用管；EB和CO有两个部门需关注\n  PPS第一次发布后，经理才可以自由编辑和发布\n\n【Sign off提醒】\n• 查看Payroll里的sign off周期\n• 提前2-3天提醒经理进行Sign off（模板参考之前群里发的）\n\n【Sign off中】\n• 检查SSG、Leo、Rachel、Kevin的考勤表有无异常\n• 确保无异常后提醒店长审批工时\n• 检查假期：病假和其他假期（纸质版和企业微信申请端）\n\n【报表导出5步】\n第一步：选择 Suzhou Store_STO484\n第二步：报表页面导出 Payfile report\n第三步：存到 → \\\\RETCN484-NT0001.IKEA.COM\\Common_B\\HR_secret_garden\\02 People Planning\\15 My time\\My time考勤数据导出（CSV转xlsx）\n第四步：完成数据透视（因My Time UI不稳定，数据发群里供经理核对最终工时）\n第五步：确保所有 'approval required' 的工时都变成已批准\n\n【Sign off后】\n• 导出每次sign off之后的payfile，保存作为完全sign off的记录凭证\n\n关键词：每周三上午10点 / 提前2-3天 / 店长审批 / Payfile存档"
+            },
+            {
+                id: "cy_b2", text: "病假 Follow", priority: "mid",
+                detail: "每半月度跟踪病假工时，确保病假考勤正确录入系统、薪资扣减准确。\n关键词：病假考勤 / 薪资扣减 / 半月度跟踪"
+            },
+            {
+                id: "cy_b3", text: "扣薪工时 Follow", priority: "mid",
+                detail: "每半月度跟踪扣薪工时（如事假等），确保系统扣减准确、与部门经理确认。\n关键词：事假扣薪 / 系统扣减 / 经理确认"
+            }
+        ]
+    },
+    {
+        level: "adhoc", levelName: "不定期（按需触发）", levelClass: "adhoc", levelColor: "var(--adhoc-color)",
+        items: [
+            {
+                id: "cy_a1", text: "育儿假 / 产假 / 陪产假 / 护理假", priority: "mid",
+                detail: "按需处理各类法定假期申请：\n• 确认假期类型和天数\n• 系统录入假期\n• 排班调整（假期期间不排班）\n• 考勤卡中正确标注\n关键词：法定假期 / 系统录入 / 排班调整"
+            },
+            {
+                id: "cy_a2", text: "入职（新员工系统配置）", priority: "high",
+                detail: "新员工入职时PPS需要完成：\n• My Time系统中创建排班档案\n• 设置合同工时（40H/28H/24H）\n• 确认可用性（何时能上班/不能上班）\n• 分配到正确的OU和部门\n关键词：排班档案 / 合同工时 / 可用性 / OU分配"
+            },
+            {
+                id: "cy_a3", text: "离职步骤", priority: "high",
+                detail: "离职完整流程：\n① 年假核算表格 — 核算剩余年假（法定+公司），确认折现或结转\n② 离职表格填写提交给Admin\n③ 打印离职证明，申请公章盖章\n④ 离职面谈\n⑤ 离职清单\n⑥ 考勤收尾：确保最后工时正确、考勤卡Sign off\n关键词：年假核算 / 公章盖章 / 离职面谈 / 考勤收尾"
+            },
+            {
+                id: "cy_a4", text: "历史添加（Historical Edit — 尽量不要出现）", priority: "mid",
+                detail: "Sign off后考勤卡已锁定，如需修改往期考勤：\n• 需要对应的SMG发邮件给PPS，并抄送SSG和PCM\n• PPS完成历史编辑后，对历史编辑的那一天进行Approve（只Approve那一天）\n• 尽量避免出现历史添加\n关键词：SMG邮件审批 / SSG+PCM抄送 / 只Approve编辑当天"
+            }
+        ]
+    }
+];
+
+/* ================= SOP模板数据 ================= */
+var sopTemplates = [
+    {
+        name: "月度考勤Sign off流程",
+        tag: "🔴 每月必用",
+        priority: "high",
+        data: {
+            title: "月度考勤Sign off与Payroll Lock",
+            frequency: "每月2日和16日",
+            system: "My Time / Kronos",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 所有部门考勤异常已处理完毕\n2. 加班工时已全部审批\n3. 已提醒部门经理确认本部门考勤",
+            steps: [
+                { title: "登录My Time，确认考勤状态", detail: "路径：My Time → Time & Attendance → Approve Timecards\n逐个部门检查：用OU编号筛选（如1094为Sales）\n确认：所有考勤卡状态为绿色/已审批", screenshot: "📸 截图：考勤卡列表界面" },
+                { title: "检查异常考勤卡", detail: "筛选条件：Status = Exception\n逐条确认：DT→联系经理；漏打卡→补签；未排班→补排班", screenshot: "📸 截图：异常筛选界面" },
+                { title: "确认加班已审批", detail: "筛选条件：OT > 0\n逐条核对：企微审批记录与系统一致\n未审批加班→联系经理确认", screenshot: "" },
+                { title: "Kronos Sign off", detail: "路径：Kronos → Timecard → Sign off\n选择日期范围→逐个部门执行\n确认提示：Sign off successful", screenshot: "📸 截图：Sign off按钮" },
+                { title: "确认Payroll Lock", detail: "Sign off后系统自动锁定往期考勤卡\n验证：尝试打开上月考勤卡→确认显示Locked\n⚠️ 如需修改→走历史编辑流程", screenshot: "" },
+                { title: "导出考勤数据", detail: "路径：Kronos → Reports → Payroll Report\n日期范围：对应发薪周期\n格式：Excel\n保存路径：fileserver对应文件夹", screenshot: "" },
+                { title: "数据核对", detail: "核对：总工时 vs 预算工时（差异<2%）\n核对：加班汇总 vs 企微审批汇总\n核对：异常项数量=0\n如有差异→追溯具体部门", screenshot: "" }
+            ],
+            exceptions: [
+                { situation: "Sign off失败", action: "检查是否有未处理异常→处理后重试", contact: "ASK team" },
+                { situation: "Sign off后需修改", action: "走历史编辑→修改→重新Sign off", contact: "ASK team" },
+                { situation: "导出数据为空", action: "检查日期范围/部门筛选条件", contact: "ASK team" },
+                { situation: "工时差异>5%", action: "逐部门对比→定位异常部门→核查", contact: "部门经理" }
+            ],
+            checklist: [
+                "所有部门考勤已Sign off",
+                "Payroll Lock已生效",
+                "考勤数据已导出并保存",
+                "工时差异<2%",
+                "异常项=0或已全部解释",
+                "已通知薪资团队数据已就绪"
+            ]
+        }
+    },
+    {
+        name: "周排班发布流程",
+        tag: "🟡 每周必用",
+        priority: "mid",
+        data: {
+            title: "周排班发布流程",
+            frequency: "每周（提前4周排班）",
+            system: "My Time",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 已收到各部门经理确认的排班需求\n2. 已确认员工可用性\n3. 已核对HC和合同工时",
+            steps: [
+                { title: "确认排班范围", detail: "确认排班周期（哪4周的排班）\n确认涉及部门（用OU编号筛选）\n确认员工清单完整性", screenshot: "" },
+                { title: "创建排班表", detail: "路径：My Time → Scheduling → Create Schedule\n选择OU→选择日期范围→创建\n⚠️ 确认OU编号正确（参考部门对照表）", screenshot: "📸 截图：创建排班界面" },
+                { title: "执行排班", detail: "方式1：自动分配（系统按规则排班）\n方式2：分配给特定成员（手动指定）\n方式3：智能模板外编辑（手动调整）", screenshot: "" },
+                { title: "检查排班完整性", detail: "确认：所有员工已排班\n确认：所有日期已覆盖\n确认：班次间隔≥11小时\n确认：连续工作≤6天\n⚠️ 怀孕/哺乳期员工不排18时后", screenshot: "" },
+                { title: "提交部门经理确认", detail: "导出排班预览→发送部门经理\n等待经理确认/修改意见\n收到确认后继续", screenshot: "" },
+                { title: "发布排班", detail: "路径：My Time → Scheduling → Publish\n确认发布范围→点击发布\n发布后员工可在My Time查看自己的排班\n⚠️ 员工打卡后不要改排班！", screenshot: "📸 截图：发布按钮" }
+            ],
+            exceptions: [
+                { situation: "排班与请假冲突", action: "手动修正排班→确认不影响薪资", contact: "部门经理" },
+                { situation: "员工换班申请", action: "确认工时累计和加班影响→调整排班", contact: "部门经理" },
+                { situation: "排班后发现漏排", action: "补充排班→通知员工", contact: "" },
+                { situation: "HC不足需加班", action: "确认加班审批→排OT班次", contact: "部门经理" }
+            ],
+            checklist: [
+                "所有员工已排班",
+                "所有日期已覆盖",
+                "班次间隔≥11小时",
+                "连续工作≤6天",
+                "部门经理已确认",
+                "排班已发布"
+            ]
+        }
+    },
+    {
+        name: "考勤异常处理流程",
+        tag: "🟡 每日必用",
+        priority: "mid",
+        data: {
+            title: "考勤异常处理流程",
+            frequency: "每日",
+            system: "My Time",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 每日登录My Time查看异常考勤卡\n2. 准备好部门经理联系方式",
+            steps: [
+                { title: "查看异常考勤卡", detail: "路径：My Time → Time & Attendance → Exception Report\n筛选异常类型：DT/漏打卡/多打卡/未排班打卡/时间不符", screenshot: "" },
+                { title: "分类处理异常", detail: "DT（未批准超出）→联系经理确认是否批准\n漏打卡→员工申诉→经理确认→补签\n多打卡→删除多余打卡记录\n未排班打卡→补排班或删除打卡\n时间不符→核实实际工作时间", screenshot: "" },
+                { title: "执行处理操作", detail: "在考勤卡中编辑→添加/删除打卡记录\n添加Manual Input工时（如需）\n确认修改后保存", screenshot: "📸 截图：考勤卡编辑界面" },
+                { title: "记录处理结果", detail: "记录：员工姓名/异常类型/处理方式/处理时间\n如涉及薪资影响→标记并通知薪资团队", screenshot: "" }
+            ],
+            exceptions: [
+                { situation: "考勤卡已锁定", action: "走历史编辑流程", contact: "ASK team" },
+                { situation: "员工对处理结果有异议", action: "重新核实→提供打卡记录证据", contact: "部门经理" },
+                { situation: "系统无法编辑", action: "检查权限/联系ASK team", contact: "ASK team" }
+            ],
+            checklist: [
+                "所有异常考勤卡已处理",
+                "处理结果已记录",
+                "薪资影响项已标记",
+                "部门经理已知晓"
+            ]
+        }
+    },
+    {
+        name: "加班审批流程",
+        tag: "🔴 每周必用",
+        priority: "high",
+        data: {
+            title: "加班审批流程",
+            frequency: "每周",
+            system: "My Time / 企微",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 所有加班必须提前企微审批\n2. 确认加班工时在预算范围内",
+            steps: [
+                { title: "收集加班审批记录", detail: "从企微导出加班审批记录\n确认：员工姓名/日期/加班时长/审批人", screenshot: "" },
+                { title: "在My Time中录入加班", detail: "路径：My Time → Time & Attendance → 员工考勤卡\n添加OT工时→输入加班时长\n确认：加班类型（OT 1.5 / OT 3）", screenshot: "" },
+                { title: "核对加班总量", detail: "汇总：各部门加班工时\n核对：企微审批 vs 系统录入\n核对：加班工时 vs 预算工时\n⚠️ 标准工时制月加班≤36小时", screenshot: "" },
+                { title: "异常加班处理", detail: "未审批加班→先记录后核实，不擅自否认\n超预算加班→通知P&C Manager\n法定节假日加班→确认OT 3倍", screenshot: "" }
+            ],
+            exceptions: [
+                { situation: "员工加班但无企微审批", action: "先记录→联系经理确认→补审批", contact: "部门经理" },
+                { situation: "加班超过36H/月", action: "通知P&C Manager→评估合规风险", contact: "P&C Manager" },
+                { situation: "加班类型选错", action: "修改考勤卡→重新录入正确类型", contact: "" }
+            ],
+            checklist: [
+                "所有加班已录入My Time",
+                "企微审批与系统一致",
+                "加班工时在预算范围内",
+                "异常加班已处理"
+            ]
+        }
+    },
+    {
+        name: "年假录入流程",
+        tag: "🟢 不定期",
+        priority: "low",
+        data: {
+            title: "年假录入流程",
+            frequency: "不定期（员工请假时）",
+            system: "My Time",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 员工已获部门经理批准请假\n2. 确认员工年假余额充足",
+            steps: [
+                { title: "确认年假余额", detail: "路径：My Time → 员工档案 → Leave Balance\n确认：法定年假余额 / 公司年假余额\n扣除优先顺序：法定年假优先，其次公司年假", screenshot: "" },
+                { title: "录入年假（方法1）", detail: "路径：My Time → Scheduling → 排班表中直接添加假期\n选择日期→选择假期类型（法定/公司年假）", screenshot: "" },
+                { title: "录入年假（方法2）", detail: "路径：My Time → Time & Attendance → 考勤卡中添加PTO\n选择日期→选择假期类型", screenshot: "" },
+                { title: "确认扣除结果", detail: "检查：年假余额已正确扣除\n检查：排班表中显示假期\n检查：考勤卡中显示PTO", screenshot: "" }
+            ],
+            exceptions: [
+                { situation: "年假余额不足", action: "通知员工→改为事假或调休", contact: "员工/部门经理" },
+                { situation: "跨年度年假使用", action: "确认使用上年结转还是当年额度", contact: "" },
+                { situation: "兼职员工年假", action: "确认已满6个月才可使用", contact: "" }
+            ],
+            checklist: [
+                "年假余额已确认",
+                "年假已录入系统",
+                "扣除结果已核对",
+                "排班和考勤显示正确"
+            ]
+        }
+    },
+    {
+        name: "薪资核算前数据检查",
+        tag: "🔴 每月必用",
+        priority: "high",
+        data: {
+            title: "薪资核算前数据检查",
+            frequency: "每月（发薪前）",
+            system: "My Time / Kronos / Excel",
+            department: "全部门",
+            operator: "PPS",
+            version: "v1.0",
+            status: "draft",
+            prerequisites: "1. 考勤已全部Sign off\n2. Payroll Lock已生效\n3. 考勤数据已导出",
+            steps: [
+                { title: "核对发薪周期", detail: "40H：当月1日~月底\n28H：上月16日~当月15日\n24H社会兼职：分两次（10日+25日）\n24H学生工/退休兼职：上月16日~本月15日", screenshot: "" },
+                { title: "工时汇总核对", detail: "导出考勤汇总→按用工类型分类\n核对：总工时 vs 预算工时（差异<2%）\n核对：各部门工时分配比例", screenshot: "" },
+                { title: "加班费核对", detail: "核对：OT 1.5工时×时薪×1.5\n核对：OT 3工时×时薪×3\n核对：加班工时汇总 vs 企微审批", screenshot: "" },
+                { title: "异常薪资项检查", detail: "检查：是否有未解释的DT工时\n检查：是否有未审批的加班\n检查：兼职员工工时是否超限（日≤4H，周≤24H）\n检查：最低工资折算时薪是否达标", screenshot: "" },
+                { title: "异动员工检查", detail: "离职员工：最后工时是否正确\n新入职员工：入职日工时是否正确\n调转员工：两个OU工时是否都正确", screenshot: "" },
+                { title: "提交薪资团队", detail: "整理数据包→发送薪资团队\n附异常说明文档\n确认薪资团队已收到", screenshot: "" }
+            ],
+            exceptions: [
+                { situation: "工时差异>2%", action: "逐部门对比→定位异常→修正", contact: "部门经理" },
+                { situation: "发现未审批加班", action: "联系经理确认→补审批或删除", contact: "部门经理" },
+                { situation: "兼职超限", action: "通知经理→调整排班→修正工时", contact: "部门经理" },
+                { situation: "数据导出失败", action: "检查权限/日期范围/联系ASK team", contact: "ASK team" }
+            ],
+            checklist: [
+                "发薪周期已确认",
+                "工时差异<2%",
+                "加班费已核对",
+                "异常项=0或已全部解释",
+                "异动员工已检查",
+                "数据已提交薪资团队"
+            ]
+        }
+    }
 ];
 
 /* ================= 工具函数 ================= */
@@ -642,6 +1331,10 @@ function loadState(key) { try { return JSON.parse(localStorage.getItem(key)) || 
 function saveState(key, state) { localStorage.setItem(key, JSON.stringify(state)); }
 function loadJournal() { try { return JSON.parse(localStorage.getItem(JOURNAL_KEY)) || []; } catch (e) { return []; } }
 function saveJournalData(data) { localStorage.setItem(JOURNAL_KEY, JSON.stringify(data)); }
+function loadSOPs() { try { return JSON.parse(localStorage.getItem(SOP_KEY)) || []; } catch (e) { return []; } }
+function saveSOPs(data) { localStorage.setItem(SOP_KEY, JSON.stringify(data)); }
+
+var currentSOPId = null;
 
 /* ================= 标签页切换 ================= */
 function switchTab(tabName) {
@@ -655,7 +1348,98 @@ function switchTab(tabName) {
     if (tabName === 'role') renderRoleList();
     if (tabName === 'guide') renderGuideList();
     if (tabName === 'deptmap') renderDeptMapping();
+    if (tabName === 'cycle') renderCycleWork();
+    if (tabName === 'sop') { renderSOPList(); if (currentSOPId) renderSOPEditor(currentSOPId); else renderSOPEmpty(); }
 }
+
+/* ================= SOP编辑器函数 ================= */
+function renderSOPList() {
+    var sops = loadSOPs();
+    var listBody = document.getElementById('sop-list-body');
+    var countEl = document.getElementById('sop-count');
+    listBody.innerHTML = '';
+    countEl.textContent = sops.length + '份';
+    if (sops.length === 0) {
+        listBody.innerHTML = '<div style="padding:15px; text-align:center; color:#999; font-size:12px;">暂无SOP<br>点击下方新建或从模板创建</div>';
+        return;
+    }
+    sops.forEach(function(sop) {
+        var div = document.createElement('div');
+        div.className = 'sop-item' + (sop.id === currentSOPId ? ' active' : '');
+        var statusClass = sop.status === 'done' ? 'sop-status-done' : (sop.status === 'review' ? 'sop-status-review' : 'sop-status-draft');
+        var statusText = sop.status === 'done' ? '✅完成' : (sop.status === 'review' ? '🔶待审' : '📝草稿');
+        div.innerHTML = '<div style="flex:1;"><div class="sop-item-title">' + escapeHtml(sop.title || '未命名SOP') + '</div><div class="sop-item-meta">' + escapeHtml(sop.frequency || '') + ' · ' + escapeHtml(sop.system || '') + '</div></div><span class="sop-item-status ' + statusClass + '">' + statusText + '</span>';
+        div.onclick = function() { currentSOPId = sop.id; renderSOPList(); renderSOPEditor(sop.id); };
+        listBody.appendChild(div);
+    });
+}
+
+function renderSOPEmpty() {
+    var area = document.getElementById('sop-editor-area');
+    area.innerHTML = '<div class="sop-empty"><p style="font-size:40px;">📝</p><p style="font-size:16px; font-weight:bold; color:#666;">SOP编辑器</p><p>点击左侧「新建SOP」创建空白SOP</p><p>或点击「从模板创建」选择预设模板</p><p style="margin-top:15px; font-size:12px;">💡 撰写原则：写动作不写感受 · 按时间顺序 · 截图标注 · 记录异常处理</p></div>';
+}
+
+function renderSOPEditor(sopId) {
+    var sops = loadSOPs();
+    var sop = sops.find(function(s) { return s.id === sopId; });
+    if (!sop) { renderSOPEmpty(); return; }
+    currentSOPId = sopId;
+    var area = document.getElementById('sop-editor-area');
+    var stepsHtml = '';
+    if (sop.steps && sop.steps.length > 0) {
+        sop.steps.forEach(function(step, idx) {
+            stepsHtml += '<div class="sop-step" data-step-idx="' + idx + '"><div class="sop-step-header"><div class="sop-step-num">' + (idx + 1) + '</div><input class="sop-step-title" value="' + escapeAttr(step.title || '') + '" onchange="updateSOPStep(' + idx + ', \'title\', this.value)" placeholder="步骤标题"><button class="sop-step-del" onclick="deleteSOPStep(' + idx + ')" title="删除此步骤">×</button></div><textarea onchange="updateSOPStep(' + idx + ', \'detail\', this.value)" placeholder="详细操作说明（路径、具体操作、注意事项...）">' + escapeHtml(step.detail || '') + '</textarea><input style="margin-top:5px;" value="' + escapeAttr(step.screenshot || '') + '" onchange="updateSOPStep(' + idx + ', \'screenshot\', this.value)" placeholder="截图说明（如：📸 截图：Sign off按钮）"></div>';
+        });
+    }
+    var exceptionsHtml = '<table class="sop-exception-table"><tr><th style="width:30%;">异常情况</th><th style="width:45%;">处理方式</th><th style="width:25%;">联系人</th></tr>';
+    if (sop.exceptions && sop.exceptions.length > 0) {
+        sop.exceptions.forEach(function(ex, idx) {
+            exceptionsHtml += '<tr data-ex-idx="' + idx + '"><td><input value="' + escapeAttr(ex.situation || '') + '" onchange="updateSOPException(' + idx + ', \'situation\', this.value)" placeholder="什么异常？"></td><td><input value="' + escapeAttr(ex.action || '') + '" onchange="updateSOPException(' + idx + ', \'action\', this.value)" placeholder="怎么处理？"></td><td><input value="' + escapeAttr(ex.contact || '') + '" onchange="updateSOPException(' + idx + ', \'contact\', this.value)" placeholder="找谁？"></td></tr>';
+        });
+    }
+    exceptionsHtml += '</table>';
+    var checklistHtml = '';
+    if (sop.checklist && sop.checklist.length > 0) {
+        sop.checklist.forEach(function(item, idx) {
+            checklistHtml += '<div class="sop-checklist-item"><input type="checkbox"' + (item.checked ? ' checked' : '') + ' onchange="updateSOPChecklist(' + idx + ', \'checked\', this.checked)"><input type="text" value="' + escapeAttr(item.text || '') + '" onchange="updateSOPChecklist(' + idx + ', \'text\', this.value)" placeholder="检查项"><button class="del-cb" onclick="deleteSOPChecklist(' + idx + ')">×</button></div>';
+        });
+    }
+    area.innerHTML = '<div class="sop-editor"><div class="sop-editor-header"><input class="sop-editor-title" value="' + escapeAttr(sop.title || '') + '" onchange="updateSOPField(\'title\', this.value)" placeholder="SOP标题" style="flex:1; border:none; background:transparent; font-size:18px; font-weight:bold; color:var(--sop-color);"><div class="sop-editor-actions"><select onchange="updateSOPField(\'status\', this.value)" style="padding:4px 8px; border-radius:4px; font-size:12px;"><option value="draft"' + (sop.status === 'draft' ? ' selected' : '') + '>📝草稿</option><option value="review"' + (sop.status === 'review' ? ' selected' : '') + '>🔶待审</option><option value="done"' + (sop.status === 'done' ? ' selected' : '') + '>✅完成</option></select><button class="btn btn-danger" onclick="deleteSOP(' + sopId + ')" style="font-size:12px;">🗑️ 删除</button></div></div><div class="sop-field-row"><div class="sop-field"><label class="sop-field-label">操作人</label><input value="' + escapeAttr(sop.operator || '') + '" onchange="updateSOPField(\'operator\', this.value)" placeholder="如：PPS"></div><div class="sop-field"><label class="sop-field-label">频率</label><input value="' + escapeAttr(sop.frequency || '') + '" onchange="updateSOPField(\'frequency\', this.value)" placeholder="如：每月2日"></div></div><div class="sop-field-row"><div class="sop-field"><label class="sop-field-label">涉及系统</label><input value="' + escapeAttr(sop.system || '') + '" onchange="updateSOPField(\'system\', this.value)" placeholder="如：My Time / Kronos"></div><div class="sop-field"><label class="sop-field-label">涉及部门</label><input value="' + escapeAttr(sop.department || '') + '" onchange="updateSOPField(\'department\', this.value)" placeholder="如：全部门 / Sales (OU 1094)"></div></div><div class="sop-field-row"><div class="sop-field"><label class="sop-field-label">版本</label><input value="' + escapeAttr(sop.version || 'v1.0') + '" onchange="updateSOPField(\'version\', this.value)"></div><div class="sop-field"><label class="sop-field-label">最后更新</label><input value="' + escapeAttr(sop.updated || '') + '" onchange="updateSOPField(\'updated\', this.value)" placeholder="如：2026-09-25"></div></div><div class="sop-field"><label class="sop-field-label">📋 前置条件</label><textarea onchange="updateSOPField(\'prerequisites\', this.value)" placeholder="开始前需要准备什么、确认什么...">' + escapeHtml(sop.prerequisites || '') + '</textarea></div><div style="margin:15px 0 8px; font-size:14px; font-weight:bold; color:var(--sop-color); border-bottom:1px solid #c8e6c9; padding-bottom:5px;">📝 操作步骤</div><div class="sop-step-list" id="sop-step-list">' + stepsHtml + '</div><button class="sop-add-step" onclick="addSOPStep()">➕ 添加步骤</button><div style="margin:20px 0 8px; font-size:14px; font-weight:bold; color:#e65100; border-bottom:1px solid #ffe0b2; padding-bottom:5px;">⚠️ 异常处理</div>' + exceptionsHtml + '<button class="sop-add-step sop-exception-add" style="border-color:#ffe0b2; color:#e65100; background:#fff8e1;" onclick="addSOPException()">➕ 添加异常项</button><div style="margin:20px 0 8px; font-size:14px; font-weight:bold; color:#555; border-bottom:1px solid #ddd; padding-bottom:5px;">✅ 完成检查清单</div><div class="sop-checklist" id="sop-checklist">' + checklistHtml + '</div><button class="sop-add-step" style="margin-top:5px;" onclick="addSOPChecklist()">➕ 添加检查项</button><div style="margin-top:20px; padding:10px; background:#e8f5e9; border-radius:6px; text-align:center;"><p style="font-size:12px; color:#555;">💡 数据自动保存到浏览器本地。建议定期导出备份。</p></div></div>';
+}
+
+function createNewSOP() {
+    var sops = loadSOPs();
+    var newSOP = { id: Date.now(), title: '新建SOP', operator: 'PPS', frequency: '', system: '', department: '', version: 'v1.0', updated: new Date().toISOString().split('T')[0], status: 'draft', prerequisites: '', steps: [{ title: '步骤1', detail: '', screenshot: '' }], exceptions: [], checklist: [] };
+    sops.unshift(newSOP); saveSOPs(sops); currentSOPId = newSOP.id; renderSOPList(); renderSOPEditor(newSOP.id);
+}
+function createFromTemplate(tplIdx) {
+    var tpl = sopTemplates[tplIdx]; var sops = loadSOPs(); var newSOP = JSON.parse(JSON.stringify(tpl.data));
+    newSOP.id = Date.now(); newSOP.updated = new Date().toISOString().split('T')[0];
+    if (newSOP.checklist) { newSOP.checklist = newSOP.checklist.map(function(text) { return { text: text, checked: false }; }); }
+    sops.unshift(newSOP); saveSOPs(sops); currentSOPId = newSOP.id; renderSOPList(); renderSOPEditor(newSOP.id);
+    document.getElementById('sop-template-dropdown').classList.remove('show');
+}
+function deleteSOP(sopId) {
+    if (!confirm('确认删除此SOP？此操作不可撤销。')) return;
+    var sops = loadSOPs(); sops = sops.filter(function(s) { return s.id !== sopId; }); saveSOPs(sops);
+    currentSOPId = sops.length > 0 ? sops[0].id : null; renderSOPList();
+    if (currentSOPId) renderSOPEditor(currentSOPId); else renderSOPEmpty();
+}
+function updateSOPField(field, value) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop) return; sop[field] = value; sop.updated = new Date().toISOString().split('T')[0]; saveSOPs(sops); renderSOPList(); }
+function addSOPStep() { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop) return; if (!sop.steps) sop.steps = []; sop.steps.push({ title: '新步骤', detail: '', screenshot: '' }); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function updateSOPStep(idx, field, value) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.steps || !sop.steps[idx]) return; sop.steps[idx][field] = value; sop.updated = new Date().toISOString().split('T')[0]; saveSOPs(sops); }
+function deleteSOPStep(idx) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.steps) return; sop.steps.splice(idx, 1); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function addSOPException() { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop) return; if (!sop.exceptions) sop.exceptions = []; sop.exceptions.push({ situation: '', action: '', contact: '' }); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function updateSOPException(idx, field, value) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.exceptions || !sop.exceptions[idx]) return; sop.exceptions[idx][field] = value; sop.updated = new Date().toISOString().split('T')[0]; saveSOPs(sops); }
+function deleteSOPException(idx) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.exceptions) return; sop.exceptions.splice(idx, 1); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function addSOPChecklist() { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop) return; if (!sop.checklist) sop.checklist = []; sop.checklist.push({ text: '', checked: false }); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function updateSOPChecklist(idx, field, value) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.checklist || !sop.checklist[idx]) return; sop.checklist[idx][field] = value; sop.updated = new Date().toISOString().split('T')[0]; saveSOPs(sops); }
+function deleteSOPChecklist(idx) { var sops = loadSOPs(); var sop = sops.find(function(s) { return s.id === currentSOPId; }); if (!sop || !sop.checklist) return; sop.checklist.splice(idx, 1); saveSOPs(sops); renderSOPEditor(currentSOPId); }
+function exportSOPs() { var sops = loadSOPs(); var dataStr = JSON.stringify(sops, null, 2); var blob = new Blob([dataStr], { type: 'application/json' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'pps_sop_backup_' + new Date().toISOString().split('T')[0] + '.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+function importSOPs(event) { var file = event.target.files[0]; if (!file) return; var reader = new FileReader(); reader.onload = function(e) { try { var data = JSON.parse(e.target.result); if (confirm('导入将覆盖当前所有SOP，确认继续？')) { saveSOPs(data); currentSOPId = data.length > 0 ? data[0].id : null; renderSOPList(); if (currentSOPId) renderSOPEditor(currentSOPId); else renderSOPEmpty(); alert('导入成功！'); } } catch (err) { alert('文件格式错误'); } }; reader.readAsText(file); event.target.value = ''; }
+function renderTemplateDropdown() { var dropdown = document.getElementById('sop-template-dropdown'); dropdown.innerHTML = ''; sopTemplates.forEach(function(tpl, idx) { var div = document.createElement('div'); div.className = 'sop-template-option'; div.innerHTML = escapeHtml(tpl.name) + ' <span class="tpl-tag" style="background:' + (tpl.priority === 'high' ? '#e74c3c' : tpl.priority === 'mid' ? '#f39c12' : '#27ae60') + '">' + tpl.tag + '</span>'; div.onclick = function() { createFromTemplate(idx); }; dropdown.appendChild(div); }); }
+function escapeHtml(text) { if (!text) return ''; var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+function escapeAttr(text) { if (!text) return ''; return String(text).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 /* ================= 部门对照表渲染 ================= */
 function renderDeptMapping() {
@@ -663,323 +1447,143 @@ function renderDeptMapping() {
     if (!container) return;
     var state = loadState(CHECKLIST_KEY);
     container.innerHTML = '';
-
-    /* 说明区 */
-    var intro = document.createElement('div');
-    intro.className = 'dept-intro';
-    intro.innerHTML =
-        '<p><b>📌 用途：</b>排班、考勤、Sign off 时，日常叫法和My Time系统显示名称往往不同，请对照下表逐一熟记。</p>' +
-        '<p><b>💡 使用方法：</b>左侧是日常叫法（你和平时的部门名称），右侧是My Time系统中实际显示的 Division 和 Department 名称。输入关键词可实时搜索过滤。</p>';
+    var intro = document.createElement('div'); intro.className = 'dept-intro';
+    intro.innerHTML = '<p><b>📌 用途：</b>排班、考勤、Sign off时，日常叫法和My Time系统显示名称往往不同，请对照下表逐一熟记。</p><p><b>💡 使用方法：</b>左侧是日常叫法，右侧是My Time系统中实际显示的Division和Department。输入关键词可实时搜索。</p>';
     container.appendChild(intro);
-
-    /* 表格容器 */
-    var tableBox = document.createElement('div');
-    tableBox.className = 'dept-table-container';
-    tableBox.innerHTML =
-        '<h3>🏢 苏州门店 部门名称完整对照表</h3>' +
-        '<div class="dept-subtitle">日常叫法（Organizational Unit） ⟷ My Time系统显示名称（Div | Dept）| 共10个OU、42个部门</div>';
-
-    /* 表格 */
-    var table = document.createElement('table');
-    table.className = 'dept-table';
-    table.id = 'dept-mapping-table';
-    table.innerHTML =
-        '<thead><tr>' +
-        '<th style="width:7%;">OU<br><small>编号</small></th>' +
-        '<th style="width:21%;">日常叫法<br><small>Organizational Unit Dept</small></th>' +
-        '<th style="width:4%;">⟷</th>' +
-        '<th style="width:24%;">My Time Div<br><small>系统 Division</small></th>' +
-        '<th style="width:22%;">My Time Dept<br><small>系统 Department</small></th>' +
-        '<th style="width:22%;">系统完整显示<br><small>Div | Dept</small></th>' +
-        '</tr></thead>';
-
-    var tbody = document.createElement('tbody');
-    tbody.id = 'dept-tbody';
-
+    var tableBox = document.createElement('div'); tableBox.className = 'dept-table-container';
+    tableBox.innerHTML = '<h3>🏢 苏州门店 部门名称完整对照表</h3><div class="dept-subtitle">日常叫法 ⟷ My Time系统显示名称 | 共10个OU、42个部门</div>';
+    var table = document.createElement('table'); table.className = 'dept-table';
+    table.innerHTML = '<thead><tr><th style="width:7%;">OU<br><small>编号</small></th><th style="width:21%;">日常叫法</th><th style="width:4%;">⟷</th><th style="width:24%;">My Time Div</th><th style="width:22%;">My Time Dept</th><th style="width:22%;">完整显示</th></tr></thead>';
+    var tbody = document.createElement('tbody'); tbody.id = 'dept-tbody';
     deptMappingData.forEach(function(ou) {
-        /* OU 分组标题行 */
-        var groupTr = document.createElement('tr');
-        groupTr.className = 'ou-group-row';
-        groupTr.setAttribute('data-ou', ou.ouName);
-        groupTr.innerHTML =
-            '<td colspan="6">' +
-            ou.ouName +
-            '<span class="ou-code-tag">OU ' + ou.ouCode + '</span>' +
-            '<span class="ou-label-tag">— ' + ou.ouLabel + '</span>' +
-            '</td>';
+        var groupTr = document.createElement('tr'); groupTr.className = 'ou-group-row'; groupTr.setAttribute('data-ou', ou.ouName);
+        groupTr.innerHTML = '<td colspan="6">' + ou.ouName + '<span class="ou-code-tag">OU ' + ou.ouCode + '</span><span class="ou-label-tag">— ' + ou.ouLabel + '</span></td>';
         tbody.appendChild(groupTr);
-
-        /* 各部门行 */
         ou.depts.forEach(function(dept) {
-            var tr = document.createElement('tr');
-            if (dept.warn) tr.className = 'warn-row';
-            tr.setAttribute('data-search',
-                (ou.ouName + ' ' + ou.ouLabel + ' ' + ou.ouCode + ' ' +
-                 dept.daily + ' ' + dept.mtDiv + ' ' + dept.mtDept).toLowerCase());
-            tr.setAttribute('data-ou', ou.ouName);
-
+            var tr = document.createElement('tr'); if (dept.warn) tr.className = 'warn-row';
+            tr.setAttribute('data-search', (ou.ouName + ' ' + ou.ouLabel + ' ' + ou.ouCode + ' ' + dept.daily + ' ' + dept.mtDiv + ' ' + dept.mtDept).toLowerCase());
             var warnIcon = dept.warn ? '<span class="warn-icon" title="' + (dept.warnNote || '') + '">⚠️</span>' : '';
             var fullDisplay = dept.mtDiv + ' | ' + dept.mtDept;
             var titleAttr = dept.warn && dept.warnNote ? ' title="' + dept.warnNote + '"' : '';
-
-            tr.innerHTML =
-                '<td class="col-ou"'+titleAttr+'>' + ou.ouCode + '</td>' +
-                '<td class="col-daily"'+titleAttr+'>' + dept.daily + warnIcon + '</td>' +
-                '<td class="col-arrow"'+titleAttr+'>⟶</td>' +
-                '<td class="col-mt"'+titleAttr+'>' + dept.mtDiv + '</td>' +
-                '<td class="col-mt-dept"'+titleAttr+'>' + dept.mtDept + '</td>' +
-                '<td class="col-full"'+titleAttr+'>' + fullDisplay + '</td>';
+            tr.innerHTML = '<td class="col-ou"' + titleAttr + '>' + ou.ouCode + '</td><td class="col-daily"' + titleAttr + '>' + dept.daily + warnIcon + '</td><td class="col-arrow"' + titleAttr + '>⟶</td><td class="col-mt"' + titleAttr + '>' + dept.mtDiv + '</td><td class="col-mt-dept"' + titleAttr + '>' + dept.mtDept + '</td><td class="col-full"' + titleAttr + '>' + fullDisplay + '</td>';
             tbody.appendChild(tr);
         });
     });
-
-    table.appendChild(tbody);
-    tableBox.appendChild(table);
-    container.appendChild(tableBox);
-
-    /* 易混淆提醒框 */
-    var warnBox = document.createElement('div');
-    warnBox.className = 'dept-warn-box';
-    warnBox.innerHTML =
-        '<h4>⚠️ 易混淆提醒（务必注意）</h4>' +
-        '<p>1. <b>Management | Management</b>：多个OU都有此部门（Com-In 1016 / CR 1023 / Sales 1094 / Store Mgt 1101 / Ful 1224），My Time中显示完全相同，<b>必须通过OU编号区分</b></p>' +
-        '<p>2. <b>Marketing | Marketing</b>：Local Marketing下 IKEA Family 和 Local Marketing 两个部门在My Time中显示相同，需通过子部门区分</p>' +
-        '<p>3. <b>Sales | Kitchen& Dining</b>：Sales下 Dining 和 Kitchen 是两个不同部门，但My Time中都显示为 Sales | Kitchen& Dining</p>' +
-        '<p>4. <b>Safety& Security <span style="color:#e65100;">2</span></b>：Operations下 Safety& Security 部门在My Time中Dept名称带有数字"2"，注意不要遗漏</p>';
+    table.appendChild(tbody); tableBox.appendChild(table); container.appendChild(tableBox);
+    var warnBox = document.createElement('div'); warnBox.className = 'dept-warn-box';
+    warnBox.innerHTML = '<h4>⚠️ 易混淆提醒</h4><p>1. <b>Management | Management</b>：多个OU都有（1016/1023/1094/1101/1224），<b>必须通过OU编号区分</b></p><p>2. <b>Marketing | Marketing</b>：IKEA Family和Local Marketing显示相同</p><p>3. <b>Sales | Kitchen& Dining</b>：Dining和Kitchen是两个不同部门</p><p>4. <b>Safety& Security 2</b>：注意数字"2"</p>';
     container.appendChild(warnBox);
-
-    /* 熟记打卡区 */
-    var checklistBox = document.createElement('div');
-    checklistBox.className = 'dept-checklist-box';
-    var deptDone = 0;
-    var deptTotal = deptChecklistItems.length;
-
-    var h4 = document.createElement('h4');
-    h4.textContent = '✅ 部门熟记打卡（勾选已掌握的模块）';
-    checklistBox.appendChild(h4);
-
+    var checklistBox = document.createElement('div'); checklistBox.className = 'dept-checklist-box';
+    var deptDone = 0, deptTotal = deptChecklistItems.length;
+    var h4 = document.createElement('h4'); h4.textContent = '✅ 部门熟记打卡'; checklistBox.appendChild(h4);
     deptChecklistItems.forEach(function(item) {
-        var isChecked = state[item.id] || false;
-        if (isChecked) deptDone++;
-        var div = document.createElement('div');
-        div.className = 'dept-checklist-item';
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.id = 'dcb_' + item.id;
-        cb.checked = isChecked;
-        cb.onclick = function(e) { e.stopPropagation(); };
-        cb.onchange = function() {
-            var st = loadState(CHECKLIST_KEY);
-            st[item.id] = this.checked;
-            saveState(CHECKLIST_KEY, st);
-            renderDeptMapping();
-            renderChecklist();
-        };
-        var lbl = document.createElement('label');
-        lbl.htmlFor = 'dcb_' + item.id;
-        if (isChecked) lbl.className = 'completed';
-        var lblText = item.text;
-        if (item.note) lblText += ' <span class="note-inline">' + item.note + '</span>';
-        lbl.innerHTML = lblText;
-        div.appendChild(cb);
-        div.appendChild(lbl);
-        checklistBox.appendChild(div);
+        var isChecked = state[item.id] || false; if (isChecked) deptDone++;
+        var div = document.createElement('div'); div.className = 'dept-checklist-item';
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'dcb_' + item.id; cb.checked = isChecked;
+        cb.onclick = function(e) { e.stopPropagation(); }; cb.onchange = function() { var st = loadState(CHECKLIST_KEY); st[item.id] = this.checked; saveState(CHECKLIST_KEY, st); renderDeptMapping(); renderChecklist(); };
+        var lbl = document.createElement('label'); lbl.htmlFor = 'dcb_' + item.id; if (isChecked) lbl.className = 'completed';
+        lbl.innerHTML = item.text + (item.note ? ' <span class="note-inline">' + item.note + '</span>' : '');
+        div.appendChild(cb); div.appendChild(lbl); checklistBox.appendChild(div);
     });
-
-    /* 部门打卡进度条 */
     var deptPct = deptTotal > 0 ? Math.round((deptDone / deptTotal) * 100) : 0;
-    var progressBar = document.createElement('div');
-    progressBar.className = 'dept-progress-bar';
-    progressBar.innerHTML = '<div class="dept-progress-fill" style="width:' + deptPct + '%;"></div>';
-    checklistBox.appendChild(progressBar);
-
-    var progressText = document.createElement('div');
-    progressText.className = 'dept-progress-text';
-    progressText.textContent = '部门熟记进度：' + deptDone + '/' + deptTotal + ' (' + deptPct + '%)';
-    checklistBox.appendChild(progressText);
-
-    container.appendChild(checklistBox);
-
-    /* 操作技巧 */
-    var tipBox = document.createElement('div');
-    tipBox.className = 'dept-tip-box';
-    tipBox.innerHTML =
-        '<p><b>💡 操作技巧</b></p>' +
-        '<p>在My Time中排班/考勤/Sign off时，<b>先用OU编号定位到正确的Organizational Unit</b>，再找到对应的Div_Dep部门。</p>' +
-        '<p>建议截图或打印本对照表放在工位旁，初期操作时随时对照。</p>';
+    var pb = document.createElement('div'); pb.className = 'dept-progress-bar'; pb.innerHTML = '<div class="dept-progress-fill" style="width:' + deptPct + '%;"></div>';
+    checklistBox.appendChild(pb);
+    var pt = document.createElement('div'); pt.className = 'dept-progress-text'; pt.textContent = '部门熟记进度：' + deptDone + '/' + deptTotal + ' (' + deptPct + '%)';
+    checklistBox.appendChild(pt); container.appendChild(checklistBox);
+    var tipBox = document.createElement('div'); tipBox.className = 'dept-tip-box';
+    tipBox.innerHTML = '<p><b>💡 操作技巧</b></p><p>排班/考勤/Sign off时，<b>先用OU编号定位</b>，再找Div_Dept部门。建议截图放在工位旁。</p>';
     container.appendChild(tipBox);
-
-    /* 搜索功能 */
     var searchInput = document.getElementById('dept-search');
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
+        searchInput.oninput = function() {
             var keyword = this.value.toLowerCase().trim();
-            var rows = tbody.querySelectorAll('tr');
-            var currentOU = null;
-            var ouHasMatch = false;
-            var matchCount = 0;
+            var rows = tbody.querySelectorAll('tr'); var currentOU = null, ouHasMatch = false, matchCount = 0;
             rows.forEach(function(row) {
-                if (row.classList.contains('ou-group-row')) {
-                    currentOU = row;
-                    ouHasMatch = false;
-                    row.style.display = keyword === '' ? '' : 'none';
-                } else {
-                    if (keyword === '') {
-                        row.style.display = '';
-                        matchCount++;
-                    } else {
-                        var searchText = row.getAttribute('data-search') || '';
-                        if (searchText.indexOf(keyword) !== -1) {
-                            row.style.display = '';
-                            ouHasMatch = true;
-                            matchCount++;
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    }
+                if (row.classList.contains('ou-group-row')) { currentOU = row; ouHasMatch = false; row.style.display = keyword === '' ? '' : 'none'; }
+                else {
+                    if (keyword === '') { row.style.display = ''; matchCount++; }
+                    else { var s = row.getAttribute('data-search') || ''; if (s.indexOf(keyword) !== -1) { row.style.display = ''; ouHasMatch = true; matchCount++; } else { row.style.display = 'none'; } }
                 }
-                if (currentOU && ouHasMatch && keyword !== '') {
-                    currentOU.style.display = '';
-                }
+                if (currentOU && ouHasMatch && keyword !== '') currentOU.style.display = '';
             });
-            var countEl = document.getElementById('dept-search-count');
-            if (countEl) {
-                countEl.textContent = keyword ? '匹配 ' + matchCount + ' 个部门' : '';
-            }
-        });
+            var c = document.getElementById('dept-search-count'); if (c) c.textContent = keyword ? '匹配 ' + matchCount + ' 个部门' : '';
+        };
     }
 }
 
 /* ================= 通用列表渲染 ================= */
 function renderList(data, containerId, stateKey, isChecklist) {
-    var state = loadState(stateKey);
-    var container = document.getElementById(containerId);
-    container.innerHTML = '';
-    var total = 0, done = 0;
-
+    var state = loadState(stateKey); var container = document.getElementById(containerId);
+    container.innerHTML = ''; var total = 0, done = 0;
     if (isChecklist) {
         var filterSelect = document.getElementById('filter-section');
-        if (filterSelect && filterSelect.options.length <= 1) {
-            data.forEach(function(section) {
-                var opt = document.createElement('option');
-                opt.value = section.category || section.title;
-                opt.textContent = section.title;
-                filterSelect.appendChild(opt);
-            });
-        }
+        if (filterSelect && filterSelect.options.length <= 1) { data.forEach(function(section) { var opt = document.createElement('option'); opt.value = section.category || section.title; opt.textContent = section.title; filterSelect.appendChild(opt); }); }
     }
-
     data.forEach(function(section) {
-        var secEl = document.createElement('section');
-        secEl.setAttribute('data-category', section.category || '');
-        secEl.setAttribute('data-title', section.title);
-        var h2 = document.createElement('h2');
-        h2.textContent = section.title;
-        if (section.title.indexOf('My Time') !== -1) h2.className = 'mytime';
-        else if (section.tagType === 'role') h2.className = 'role';
-        else if (section.tagType === 'guide') h2.className = 'guide';
-        secEl.appendChild(h2);
-
-        var ul = document.createElement('ul');
+        var secEl = document.createElement('section'); secEl.setAttribute('data-category', section.category || ''); secEl.setAttribute('data-title', section.title);
+        var h2 = document.createElement('h2'); h2.textContent = section.title;
+        if (section.title.indexOf('My Time') !== -1) h2.className = 'mytime'; else if (section.tagType === 'role') h2.className = 'role'; else if (section.tagType === 'guide') h2.className = 'guide';
+        secEl.appendChild(h2); var ul = document.createElement('ul');
         section.items.forEach(function(item) {
-            total++;
-            var isChecked = state[item.id] || false;
-            if (isChecked) done++;
-            var li = document.createElement('li');
-            if (isChecked) li.className = 'completed';
+            total++; var isChecked = state[item.id] || false; if (isChecked) done++;
+            var li = document.createElement('li'); if (isChecked) li.className = 'completed';
             li.setAttribute('data-search', (item.text + ' ' + (item.note || '') + ' ' + (item.tag || '')).toLowerCase());
-            li.onclick = function(e) {
-                if (e.target.type !== 'checkbox') {
-                    var cb = li.querySelector('input[type="checkbox"]');
-                    if (cb) { cb.checked = !cb.checked; toggleItem(stateKey, item.id, cb.checked, data, containerId, isChecklist); }
-                }
-            };
-            var checkbox = document.createElement('input');
-            checkbox.type = 'checkbox'; checkbox.checked = isChecked;
-            checkbox.onclick = function(e) { e.stopPropagation(); };
-            checkbox.onchange = function() { toggleItem(stateKey, item.id, this.checked, data, containerId, isChecklist); };
-            var div = document.createElement('div');
-            div.style.flex = '1';
-            var span = document.createElement('span');
-            span.className = 'item-text'; span.textContent = item.text;
-            div.appendChild(span);
+            li.onclick = function(e) { if (e.target.type !== 'checkbox') { var cb = li.querySelector('input[type="checkbox"]'); if (cb) { cb.checked = !cb.checked; toggleItem(stateKey, item.id, cb.checked, data, containerId, isChecklist); } } };
+            var checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = isChecked; checkbox.onclick = function(e) { e.stopPropagation(); }; checkbox.onchange = function() { toggleItem(stateKey, item.id, this.checked, data, containerId, isChecklist); };
+            var div = document.createElement('div'); div.style.flex = '1';
+            var span = document.createElement('span'); span.className = 'item-text'; span.textContent = item.text; div.appendChild(span);
             if (item.note) { var note = document.createElement('small'); note.className = 'note'; note.textContent = '💡 ' + item.note; div.appendChild(note); }
-            var tag = document.createElement('span');
-            tag.className = 'tag tag-' + item.tagType; tag.textContent = item.tag;
-            li.appendChild(checkbox); li.appendChild(div); li.appendChild(tag);
-            ul.appendChild(li);
+            var tag = document.createElement('span'); tag.className = 'tag tag-' + item.tagType; tag.textContent = item.tag;
+            li.appendChild(checkbox); li.appendChild(div); li.appendChild(tag); ul.appendChild(li);
         });
-        secEl.appendChild(ul);
-        container.appendChild(secEl);
+        secEl.appendChild(ul); container.appendChild(secEl);
     });
-
-    /* 统计部门打卡项 */
-    deptChecklistItems.forEach(function(item) {
-        total++;
-        if (state[item.id]) done++;
-    });
-
+    deptChecklistItems.forEach(function(item) { total++; if (state[item.id]) done++; });
     if (isChecklist) insertChecklistRefBoxes(container);
     insertGuideRefBoxes(container);
-
-    if (isChecklist) {
-        var pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        var ptEl = document.getElementById('progress-text');
-        var pbEl = document.getElementById('progress-bar');
-        if (ptEl) ptEl.textContent = done + '/' + total + ' (' + pct + '%)';
-        if (pbEl) pbEl.style.width = pct + '%';
-    }
+    if (isChecklist) { var pct = total > 0 ? Math.round((done / total) * 100) : 0; var ptEl = document.getElementById('progress-text'); var pbEl = document.getElementById('progress-bar'); if (ptEl) ptEl.textContent = done + '/' + total + ' (' + pct + '%)'; if (pbEl) pbEl.style.width = pct + '%'; }
 }
 
-function toggleItem(stateKey, id, checked, data, containerId, isChecklist) {
-    var state = loadState(stateKey); state[id] = checked; saveState(stateKey, state);
-    renderList(data, containerId, stateKey, isChecklist);
-}
+function toggleItem(stateKey, id, checked, data, containerId, isChecklist) { var state = loadState(stateKey); state[id] = checked; saveState(stateKey, state); renderList(data, containerId, stateKey, isChecklist); }
 function renderChecklist() { renderList(checklistData, 'checklist-container', CHECKLIST_KEY, true); }
 function renderRoleList() { renderList(roleData, 'role-container', CHECKLIST_KEY, false); }
 function renderGuideList() { renderList(guideData, 'guide-container', CHECKLIST_KEY, false); }
 
-/* ================= 搜索功能 ================= */
 function doSearch() {
     var keyword = document.getElementById('search-input').value.toLowerCase().trim();
     var filterVal = document.getElementById('filter-section').value;
-    var sections = document.querySelectorAll('#checklist-container section');
-    var visibleCount = 0;
+    var sections = document.querySelectorAll('#checklist-container section'); var visibleCount = 0;
     sections.forEach(function(sec) {
-        var secCat = sec.getAttribute('data-category');
-        var secTitle = sec.getAttribute('data-title');
-        var sectionMatched = false;
+        var secCat = sec.getAttribute('data-category'); var secTitle = sec.getAttribute('data-title'); var sectionMatched = false;
         if (filterVal && filterVal !== secCat && filterVal !== secTitle) { sec.style.display = 'none'; return; }
         sec.style.display = '';
         var items = sec.querySelectorAll('li');
         items.forEach(function(li) {
             var searchText = li.getAttribute('data-search') || '';
-            if (keyword === '' || searchText.indexOf(keyword) !== -1) { li.classList.remove('hidden'); visibleCount++; sectionMatched = true; }
-            else { li.classList.add('hidden'); }
+            if (keyword === '' || searchText.indexOf(keyword) !== -1) { li.classList.remove('hidden'); visibleCount++; sectionMatched = true; } else { li.classList.add('hidden'); }
         });
-        if (!sectionMatched && keyword !== '') { sec.style.display = 'none'; }
+        if (!sectionMatched && keyword !== '') sec.style.display = 'none';
     });
     document.getElementById('search-count').textContent = keyword || filterVal ? '显示 ' + visibleCount + ' 项' : '';
 }
 
-/* ================= 参考信息框 ================= */
 function insertChecklistRefBoxes(container) {
     var sections = container.querySelectorAll('section');
     sections.forEach(function(sec) {
         var h2text = sec.querySelector('h2').textContent;
         if (h2text.indexOf('考勤全流程') !== -1) {
             var refBox = document.createElement('div'); refBox.className = 'ref-box';
-            refBox.innerHTML = '<h3>📋 My Time 考勤卡列表含义（速查）</h3><table><tr><th>代码</th><th>含义</th><th>说明</th></tr><tr><td>Regular</td><td>正常打卡工时</td><td>按排班正常出勤</td></tr><tr><td>OT</td><td>批准的加班工时</td><td>需提前企微审批</td></tr><tr><td>DT</td><td>未经批准的超出工时</td><td>需经理确认</td></tr><tr><td>PTO</td><td>带薪假期</td><td>年假/病假等</td></tr><tr><td>CP</td><td>其他支付</td><td>出差/项目工时</td></tr><tr><td>Extra Pay</td><td>传统津贴</td><td>Extra Pay相关</td></tr></table>';
+            refBox.innerHTML = '<h3>📋 My Time 考勤卡代码速查</h3><table><tr><th>代码</th><th>含义</th><th>说明</th></tr><tr><td>Regular</td><td>正常打卡</td><td>按排班正常出勤</td></tr><tr><td>OT</td><td>批准加班</td><td>需提前企微审批</td></tr><tr><td>DT</td><td>未批准超出</td><td>需经理确认</td></tr><tr><td>PTO</td><td>带薪假期</td><td>年假/病假等</td></tr><tr><td>CP</td><td>其他支付</td><td>出差/项目工时</td></tr></table>';
             sec.appendChild(refBox);
         }
         if (h2text.indexOf('排班全流程') !== -1) {
             var refBox4 = document.createElement('div'); refBox4.className = 'ref-box';
-            refBox4.innerHTML = '<h3>🏖️ 休息时间规则</h3><table><tr><th>班次长度</th><th>休息时间</th></tr><tr><td>≤ 4H</td><td>无休息</td></tr><tr><td>4H < 班次 ≤ 6H</td><td>0.5小时</td></tr><tr><td>6H < 班次 ≤ 10H</td><td>1小时（30min用餐+2×15min休息）</td></tr><tr><td>班次 = 10H</td><td>2小时</td></tr></table>';
+            refBox4.innerHTML = '<h3>🏖️ 休息时间规则</h3><table><tr><th>班次</th><th>休息</th></tr><tr><td>≤4H</td><td>无</td></tr><tr><td>4~6H</td><td>0.5H</td></tr><tr><td>6~10H</td><td>1H</td></tr><tr><td>=10H</td><td>2H</td></tr></table>';
             sec.appendChild(refBox4);
         }
-        if (h2text.indexOf('其他注意事项') !== -1) {
+        if (h2text.indexOf('其他注意') !== -1) {
             var refBox2 = document.createElement('div'); refBox2.className = 'ref-box';
-            refBox2.innerHTML = '<h3>⏱️ 系统取整逻辑</h3><table><tr><th>场景</th><th>规则</th></tr><tr><td>有排班·上班打卡</td><td>晚于上班时间超1H，往后取整至最近15min</td></tr><tr><td>有排班·下班打卡</td><td>早于下班时间超5min，往前取整至最近15min</td></tr><tr><td>无排班·上班打卡</td><td>往后取整至最近15min</td></tr><tr><td>无排班·下班打卡</td><td>往前取整至最近15min</td></tr></table>';
+            refBox2.innerHTML = '<h3>⏱️ 取整逻辑</h3><table><tr><th>场景</th><th>规则</th></tr><tr><td>有排班·上班迟到>1H</td><td>往后取整至15min</td></tr><tr><td>有排班·下班早退>5min</td><td>往前取整至15min</td></tr><tr><td>无排班·上班</td><td>往后取整至15min</td></tr><tr><td>无排班·下班</td><td>往前取整至15min</td></tr></table>';
             sec.appendChild(refBox2);
         }
     });
@@ -991,47 +1595,115 @@ function insertGuideRefBoxes(container) {
         var h2text = sec.querySelector('h2').textContent;
         if (h2text.indexOf('WH工时分配') !== -1) {
             var ref = document.createElement('div'); ref.className = 'ref-box guide';
-            ref.innerHTML = '<h3>📊 工时分配速查表</h3><table><tr><th>功能</th><th>>500M</th><th>300-500M</th><th><300M</th></tr><tr><td>Sales</td><td>44-50%</td><td>44-50%</td><td>44-50%</td></tr><tr><td>Logistics</td><td>12-16%</td><td>9-15%</td><td>9-13%</td></tr><tr><td>Com&In</td><td>4.5-6%</td><td>6.5-9%</td><td>6-9%</td></tr><tr><td>CR</td><td>26-30%</td><td>22-26%</td><td>20-24%</td></tr><tr><td>P&C</td><td>0.8-1.8%</td><td>0.8-1.8%</td><td>0.8-1.8%</td></tr><tr><td>Ops</td><td>5-6%</td><td>5-7%</td><td>5-7%</td></tr></table>';
+            ref.innerHTML = '<h3>📊 工时分配速查</h3><table><tr><th>功能</th><th>>500M</th><th>300-500M</th><th><300M</th></tr><tr><td>Sales</td><td>44-50%</td><td>44-50%</td><td>44-50%</td></tr><tr><td>Log</td><td>12-16%</td><td>9-15%</td><td>9-13%</td></tr><tr><td>CR</td><td>26-30%</td><td>22-26%</td><td>20-24%</td></tr></table>';
             sec.appendChild(ref);
         }
         if (h2text.indexOf('HC计算') !== -1) {
             var ref2 = document.createElement('div'); ref2.className = 'ref-box guide';
-            ref2.innerHTML = '<h3>🔢 HC计算示例</h3><table><tr><th>类型</th><th>比例</th><th>年工时</th><th>HC</th></tr><tr><td>40H</td><td>50%</td><td>1856H</td><td>≈70人</td></tr><tr><td>28H</td><td>20%</td><td>1560H</td><td>≈33人</td></tr><tr><td>24H</td><td>30%</td><td>1040H</td><td>≈75人</td></tr></table>';
+            ref2.innerHTML = '<h3>🔢 HC计算示例</h3><table><tr><th>类型</th><th>比例</th><th>年工时</th></tr><tr><td>40H</td><td>50%</td><td>1856H</td></tr><tr><td>28H</td><td>20%</td><td>1560H</td></tr><tr><td>24H</td><td>30%</td><td>1040H</td></tr></table>';
             sec.appendChild(ref2);
         }
         if (h2text.indexOf('用工类型') !== -1) {
             var ref3 = document.createElement('div'); ref3.className = 'ref-box guide';
-            ref3.innerHTML = '<h3>📋 用工类型对比</h3><table><tr><th>类型</th><th>合同</th><th>工时</th></tr><tr><td>全职-劳动合同</td><td>《劳动合同》</td><td>40H/28H</td></tr><tr><td>全职-退休返聘</td><td>《退休返聘合同》</td><td>40H/28H</td></tr><tr><td>兼职-社会兼职</td><td>《非全日制劳动合同》</td><td>日≤4H，周≤24H</td></tr><tr><td>兼职-退休兼职</td><td>《劳务合同》</td><td>周12-40H</td></tr><tr><td>兼职-学生兼职</td><td>《实习协议》</td><td>周≥12H</td></tr></table>';
+            ref3.innerHTML = '<h3>📋 用工类型对比</h3><table><tr><th>类型</th><th>合同</th><th>工时</th></tr><tr><td>全职-劳动合同</td><td>劳动合同</td><td>40H/28H</td></tr><tr><td>社会兼职</td><td>非全日制</td><td>日≤4H周≤24H</td></tr><tr><td>学生兼职</td><td>实习协议</td><td>周≥12H</td></tr></table>';
             sec.appendChild(ref3);
-        }
-        if (h2text.indexOf('薪酬与发薪') !== -1) {
-            var ref4 = document.createElement('div'); ref4.className = 'ref-box guide';
-            ref4.innerHTML = '<h3>💰 发薪日速查</h3><table><tr><th>类型</th><th>发薪日</th><th>周期</th></tr><tr><td>40H</td><td>每月25日</td><td>当月1日~月底</td></tr><tr><td>28H</td><td>每月25日</td><td>上月16日~当月15日</td></tr><tr><td>24H社会兼职</td><td>10日+25日</td><td>分两次</td></tr></table>';
-            sec.appendChild(ref4);
-        }
-        if (h2text.indexOf('工资代码') !== -1) {
-            var ref5 = document.createElement('div'); ref5.className = 'ref-box guide';
-            ref5.innerHTML = '<h3>🏷️ Paycode归属判断</h3><table><tr><th>代码</th><th>本商场？</th></tr><tr><td>Business Travel</td><td>✅</td></tr><tr><td>Meeting Hours</td><td>✅</td></tr><tr><td>Training Hours</td><td>✅</td></tr><tr><td>Rebuild</td><td>✅</td></tr><tr><td>Project Hours</td><td>❌</td></tr></table>';
-            sec.appendChild(ref5);
         }
         if (h2text.indexOf('公司年假') !== -1) {
             var ref6 = document.createElement('div'); ref6.className = 'ref-box guide';
-            ref6.innerHTML = '<h3>🏖️ 年假对照表</h3><table><tr><th colspan="2">公司年假（宜家服务年限N）</th></tr><tr><td>N<5</td><td>15天</td></tr><tr><td>5≤N<10</td><td>17天</td></tr><tr><td>10≤N<15</td><td>19天</td></tr><tr><td>15≤N<20</td><td>21天</td></tr><tr><td>20≤N<25</td><td>23天</td></tr><tr><td>N≥25</td><td>25天</td></tr></table>';
+            ref6.innerHTML = '<h3>🏖️ 年假对照</h3><table><tr><th colspan="2">公司年假（宜家年限N）</th></tr><tr><td>N<5</td><td>15天</td></tr><tr><td>5≤N<10</td><td>17天</td></tr><tr><td>10≤N<15</td><td>19天</td></tr><tr><td>N≥25</td><td>25天</td></tr></table>';
             sec.appendChild(ref6);
         }
         if (h2text.indexOf('Staff Cost') !== -1) {
             var ref7 = document.createElement('div'); ref7.className = 'ref-box guide';
-            ref7.innerHTML = '<h3>📐 关键公式</h3><table><tr><th>指标</th><th>公式</th></tr><tr><td>CPWH</td><td>Total Staff Cost / Worked Hour</td></tr><tr><td>生产率</td><td>Sales Volume (dm³) / Working Hour</td></tr><tr><td>Staff Cost Total</td><td>Staff Cost + Other Staff Cost</td></tr></table>';
+            ref7.innerHTML = '<h3>📐 关键公式</h3><table><tr><th>指标</th><th>公式</th></tr><tr><td>CPWH</td><td>Total Staff Cost / Worked Hour</td></tr><tr><td>生产率</td><td>Sales Volume (dm³) / Working Hour</td></tr></table>';
             sec.appendChild(ref7);
         }
     });
 }
 
+/* ================= 周期工作时间轴渲染 ================= */
+function renderCycleWork() {
+    var container = document.getElementById('cycle-container');
+    if (!container) return;
+    var state = loadState(CYCLE_KEY);
+    container.innerHTML = '';
+    var totalDone = 0, totalItems = 0;
+
+    cycleData.forEach(function(cycle) {
+        var section = document.createElement('div');
+        section.className = 'cycle-section ' + cycle.levelClass;
+
+        var doneCount = 0;
+        cycle.items.forEach(function(item) { totalItems++; if (state[item.id]) { totalDone++; doneCount++; } });
+
+        var header = document.createElement('div');
+        header.className = 'cycle-section-header ' + cycle.levelClass;
+        header.innerHTML = '<span>' + cycle.levelName + '</span><span class="cycle-count">' + doneCount + '/' + cycle.items.length + ' 已掌握</span><span class="cycle-toggle">▼</span>';
+        header.onclick = function() { section.classList.toggle('collapsed'); };
+        section.appendChild(header);
+
+        var body = document.createElement('div');
+        body.className = 'cycle-section-body';
+
+        cycle.items.forEach(function(item) {
+            var isChecked = state[item.id] || false;
+            var div = document.createElement('div');
+            div.className = 'cycle-item' + (isChecked ? ' completed' : '');
+
+            var priorityClass = item.priority === 'high' ? 'cycle-priority-high' : (item.priority === 'mid' ? 'cycle-priority-mid' : 'cycle-priority-low');
+            var priorityText = item.priority === 'high' ? '🔴 高' : (item.priority === 'mid' ? '🟡 中' : '🟢 低');
+
+            var detailHtml = '';
+            if (item.detail) {
+                detailHtml = item.detail
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/\\\\/g, '<span class="cycle-path">\\\\')
+                    .replace(/(\.(?:xlsx|json|pdf|docx?)|My time|My Time|MyT\\me)/gi, function(m) { return m + '</span>'; })
+                    .replace(/\n/g, '<br>');
+                detailHtml = detailHtml
+                    .replace(/关键词：/g, '<span class="cycle-keyword">关键词：</span>')
+                    .replace(/联系人：/g, '<span class="cycle-contact">联系人：</span>')
+                    .replace(/路径：/g, '<span class="cycle-keyword">路径：</span>');
+            }
+
+            div.innerHTML = '<input type="checkbox" id="' + item.id + '" ' + (isChecked ? 'checked' : '') + '><div class="cycle-item-content"><div class="cycle-item-text">' + item.text + '</div>' + (item.detail ? '<div class="cycle-item-detail">' + detailHtml + '</div>' : '') + '</div><span class="cycle-priority-badge ' + priorityClass + '">' + priorityText + '</span>';
+
+            var cb = div.querySelector('input[type="checkbox"]');
+            cb.onclick = function(e) { e.stopPropagation(); };
+            cb.onchange = function() {
+                var st = loadState(CYCLE_KEY);
+                st[item.id] = this.checked;
+                saveState(CYCLE_KEY, st);
+                renderCycleWork();
+            };
+            div.onclick = function(e) {
+                if (e.target.type !== 'checkbox') {
+                    cb.checked = !cb.checked;
+                    var st = loadState(CYCLE_KEY);
+                    st[item.id] = cb.checked;
+                    saveState(CYCLE_KEY, st);
+                    renderCycleWork();
+                }
+            };
+
+            body.appendChild(div);
+        });
+
+        section.appendChild(body);
+        container.appendChild(section);
+    });
+
+    var pct = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
+    var ptEl = document.getElementById('cycle-progress-text');
+    var pbEl = document.getElementById('cycle-progress-fill');
+    if (ptEl) ptEl.textContent = totalDone + '/' + totalItems + ' (' + pct + '%)';
+    if (pbEl) pbEl.style.width = pct + '%';
+}
+
 /* ================= 每日学习记录 ================= */
 function renderJournal() {
-    var journal = loadJournal();
-    var list = document.getElementById('journal-list');
-    if (journal.length === 0) { list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">暂无记录，填写上方表单开始你的第一天吧！</p>'; return; }
+    var journal = loadJournal(); var list = document.getElementById('journal-list');
+    if (journal.length === 0) { list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">暂无记录</p>'; return; }
     list.innerHTML = '';
     journal.forEach(function(j) {
         var card = document.createElement('div'); card.className = 'record-card';
@@ -1041,28 +1713,25 @@ function renderJournal() {
         var delBtn = document.createElement('button'); delBtn.className = 'btn btn-danger'; delBtn.textContent = '删除'; delBtn.onclick = function() { deleteJournal(j.id); };
         header.appendChild(delBtn); card.appendChild(header);
         if (j.tags && j.tags.length > 0) { var tagsDiv = document.createElement('div'); tagsDiv.className = 'record-tags'; j.tags.forEach(function(t) { var tagSpan = document.createElement('span'); tagSpan.textContent = t; tagsDiv.appendChild(tagSpan); }); card.appendChild(tagsDiv); }
-        var contentP = document.createElement('p'); contentP.style.margin = '10px 0'; contentP.style.whiteSpace = 'pre-wrap'; contentP.textContent = j.content; card.appendChild(contentP);
+        var contentP = document.createElement('p'); contentP.style.cssText = 'margin:10px 0; white-space:pre-wrap;'; contentP.textContent = j.content; card.appendChild(contentP);
         if (j.system) { var sysP = document.createElement('p'); sysP.style.cssText = 'font-size:12px; color:#666;'; sysP.textContent = '🛠️ 涉及系统：' + j.system; card.appendChild(sysP); }
-        if (j.tomorrow) { var tomP = document.createElement('p'); tomP.style.cssText = 'font-size:12px; color:#666;'; tomP.textContent = '🎯 明日计划/遗留：' + j.tomorrow; card.appendChild(tomP); }
+        if (j.tomorrow) { var tomP = document.createElement('p'); tomP.style.cssText = 'font-size:12px; color:#666;'; tomP.textContent = '🎯 明日计划：' + j.tomorrow; card.appendChild(tomP); }
         list.appendChild(card);
     });
 }
 
-function deleteJournal(id) { if (!confirm('确认删除这条记录？')) return; var journal = loadJournal(); journal = journal.filter(function(j) { return j.id !== id; }); saveJournalData(journal); renderJournal(); }
+function deleteJournal(id) { if (!confirm('确认删除？')) return; var journal = loadJournal(); journal = journal.filter(function(j) { return j.id !== id; }); saveJournalData(journal); renderJournal(); }
 
 function exportJournal() {
     var journal = loadJournal(); var dataStr = JSON.stringify(journal, null, 2);
     var blob = new Blob([dataStr], { type: 'application/json' }); var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = 'pps_journal_backup_' + new Date().toISOString().split('T')[0] + '.json';
+    var a = document.createElement('a'); a.href = url; a.download = 'pps_journal_' + new Date().toISOString().split('T')[0] + '.json';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function importJournal(event) {
     var file = event.target.files[0]; if (!file) return; var reader = new FileReader();
-    reader.onload = function(e) {
-        try { var data = JSON.parse(e.target.result); if (confirm('导入将覆盖当前所有记录，确认继续？')) { saveJournalData(data); renderJournal(); alert('导入成功！'); } }
-        catch (err) { alert('文件格式错误，请选择正确的JSON备份文件。'); }
-    };
+    reader.onload = function(e) { try { var data = JSON.parse(e.target.result); if (confirm('导入将覆盖当前记录？')) { saveJournalData(data); renderJournal(); alert('成功！'); } } catch (err) { alert('格式错误'); } };
     reader.readAsText(file); event.target.value = '';
 }
 
@@ -1082,9 +1751,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('export-btn').addEventListener('click', exportJournal);
     document.getElementById('import-btn').addEventListener('click', function() { document.getElementById('import-file').click(); });
     document.getElementById('import-file').addEventListener('change', importJournal);
+    document.getElementById('sop-add-btn').addEventListener('click', createNewSOP);
+    document.getElementById('sop-template-btn').addEventListener('click', function(e) { e.stopPropagation(); document.getElementById('sop-template-dropdown').classList.toggle('show'); });
+    document.addEventListener('click', function() { document.getElementById('sop-template-dropdown').classList.remove('show'); });
+    document.getElementById('sop-export-btn').addEventListener('click', exportSOPs);
+    document.getElementById('sop-import-btn').addEventListener('click', function() { document.getElementById('sop-import-file').click(); });
+    document.getElementById('sop-import-file').addEventListener('change', importSOPs);
+    renderTemplateDropdown();
     renderChecklist(); renderJournal();
 });
 </script>
 
 </body>
 </html>
+
+
